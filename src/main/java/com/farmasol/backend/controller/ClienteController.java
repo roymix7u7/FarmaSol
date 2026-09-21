@@ -32,19 +32,19 @@ public class ClienteController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('GERENTE','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<List<ClienteResponse>> listar() {
         return ResponseEntity.ok(clienteService.listar());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('GERENTE','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<ClienteResponse> obtener(@PathVariable Long id) {
         return ResponseEntity.ok(clienteService.obtenerPorId(id));
     }
 
     @PatchMapping("/{id}/estado")
-    @PreAuthorize("hasAnyRole('GERENTE','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<Void> cambiarEstado(@PathVariable Long id, @RequestParam boolean activo) {
         clienteService.cambiarEstado(id, activo);
         return ResponseEntity.noContent().build();

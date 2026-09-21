@@ -17,7 +17,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/reportes")
 @RequiredArgsConstructor
-@PreAuthorize("hasAnyRole('GERENTE','ADMINISTRADOR')")
+@PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
 public class ReporteController {
 
     private final ReporteService reporteService;

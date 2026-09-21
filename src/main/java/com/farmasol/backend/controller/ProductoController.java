@@ -34,20 +34,20 @@ public class ProductoController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('GERENTE','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<ProductoResponse> guardar(@Valid @RequestBody ProductoDTO productoDTO) {
         return new ResponseEntity<>(productoService.guardar(productoDTO), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('GERENTE','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<ProductoResponse> actualizar(@PathVariable Long id,
                                                        @Valid @RequestBody ProductoDTO productoDTO) {
         return ResponseEntity.ok(productoService.actualizar(id, productoDTO));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('GERENTE','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         productoService.eliminar(id);
         return ResponseEntity.noContent().build();

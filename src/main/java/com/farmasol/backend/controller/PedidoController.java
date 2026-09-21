@@ -43,20 +43,20 @@ public class PedidoController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('GERENTE','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<List<PedidoResumenResponse>> listar(
             @RequestParam(required = false) EstadoPedido estado) {
         return ResponseEntity.ok(pedidoService.listarTodos(estado));
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('GERENTE','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<PedidoResponse> obtener(@PathVariable Long id) {
         return ResponseEntity.ok(pedidoService.obtenerAdmin(id));
     }
 
     @PatchMapping("/{id}/estado")
-    @PreAuthorize("hasAnyRole('GERENTE','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<PedidoResponse> cambiarEstado(@PathVariable Long id,
                                                         @Valid @RequestBody CambiarEstadoRequest request) {
         return ResponseEntity.ok(pedidoService.cambiarEstado(

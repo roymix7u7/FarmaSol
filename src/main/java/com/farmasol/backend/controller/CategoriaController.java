@@ -32,20 +32,20 @@ public class CategoriaController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('GERENTE','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<CategoriaResponse> crear(@Valid @RequestBody CategoriaRequest request) {
         return new ResponseEntity<>(categoriaService.crear(request), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('GERENTE','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<CategoriaResponse> actualizar(@PathVariable Long id,
                                                         @Valid @RequestBody CategoriaRequest request) {
         return ResponseEntity.ok(categoriaService.actualizar(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('GERENTE','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<Void> desactivar(@PathVariable Long id) {
         categoriaService.desactivar(id);
         return ResponseEntity.noContent().build();

@@ -38,7 +38,7 @@ public class RecetaController {
     }
 
     @GetMapping("/api/recetas/pendientes")
-    @PreAuthorize("hasAnyRole('GERENTE','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<List<RecetaResponse>> pendientes() {
         return ResponseEntity.ok(recetaService.listarPendientes());
     }
@@ -54,13 +54,13 @@ public class RecetaController {
     }
 
     @PatchMapping("/api/recetas/{id}/aprobar")
-    @PreAuthorize("hasAnyRole('GERENTE','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<RecetaResponse> aprobar(@PathVariable Long id) {
         return ResponseEntity.ok(recetaService.aprobar(SecurityUtils.getUidActual(), id));
     }
 
     @PatchMapping("/api/recetas/{id}/rechazar")
-    @PreAuthorize("hasAnyRole('GERENTE','ADMINISTRADOR')")
+    @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<RecetaResponse> rechazar(@PathVariable Long id,
                                                    @Valid @RequestBody RechazarRecetaRequest request) {
         return ResponseEntity.ok(recetaService.rechazar(SecurityUtils.getUidActual(), id, request.getMotivo()));

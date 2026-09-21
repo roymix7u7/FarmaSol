@@ -72,12 +72,12 @@ public class DataSeeder implements CommandLineRunner {
                 .build());
 
         personalRepository.save(Personal.builder()
-                .nombres("Admin").apellidos("Catalogo")
-                .usuario("admin").correo("admin@farmasol.pe")
-                .passwordHash(passwordEncoder.encode("Admin123!"))
-                .rol(RolPersonal.ADMINISTRADOR).creadoPor(gerente).activo(true)
+                .nombres("Empleado").apellidos("Basico")
+                .usuario("empleado").correo("empleado@farmasol.pe")
+                .passwordHash(passwordEncoder.encode("Empleado123!"))
+                .rol(RolPersonal.EMPLEADO).creadoPor(gerente).activo(true)
                 .build());
-        log.info("Seed: personal creado (gerente / admin)");
+        log.info("Seed: personal creado (gerente / empleado)");
     }
 
     private void seedCatalogo() {
