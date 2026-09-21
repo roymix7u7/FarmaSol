@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../auth/AuthContext';
-import { mensajeDeError } from '../../api/client';
-import './Auth.css';
+import { useAuth } from '../auth/AuthContext';
+import { mensajeDeError } from '../api/client';
+import '../Css/Auth.css';
 
-export function Registro() {
+export function RegistroCliente() {
   const { registrarCliente } = useAuth();
   const navigate = useNavigate();
 

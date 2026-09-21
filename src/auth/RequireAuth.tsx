@@ -23,10 +23,10 @@ export function RequireStaff({ children, roles }: { children: ReactNode; roles?:
   const location = useLocation();
 
   if (!user || user.tipo !== 'PERSONAL') {
-    return <Navigate to="/admin/login" state={{ from: location }} replace />;
+    return <Navigate to="/gerente/login" state={{ from: location }} replace />;
   }
   if (roles && !roles.includes(user.rol)) {
-    return <Navigate to="/admin" replace />;
+    return <Navigate to="/gerente" replace />;
   }
   return <>{children}</>;
 }

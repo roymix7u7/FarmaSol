@@ -1,4 +1,4 @@
-export type Rol = 'GERENTE' | 'ADMINISTRADOR' | 'CLIENTE';
+export type Rol = 'GERENTE' | 'EMPLEADO' | 'CLIENTE';
 export type TipoUsuario = 'PERSONAL' | 'CLIENTE';
 export type TipoEntrega = 'DELIVERY' | 'RECOJO_TIENDA';
 export type EstadoPedido =

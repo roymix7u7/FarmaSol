@@ -3,7 +3,7 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { catalogoApi } from '../api/catalogo';
 import type { Categoria } from '../types';
-import './PublicLayout.css';
+import '../Css/PublicLayout.css';
 
 export function PublicLayout() {
   const { user, logout } = useAuth();

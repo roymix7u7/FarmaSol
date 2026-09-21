@@ -1,15 +1,15 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../auth/AuthContext';
-import { mensajeDeError } from '../../api/client';
-import fondo from '../../assets/logoffondo.jpg';
-import './Auth.css';
+import { useAuth } from '../auth/AuthContext';
+import { mensajeDeError } from '../api/client';
+import fondo from '../assets/logoffondo.jpg';
+import '../Css/Auth.css';
 
 interface DesdeState {
   from?: { pathname: string };
 }
 
-export function Login() {
+export function LoginCliente() {
   const { loginCliente } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
