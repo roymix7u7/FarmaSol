@@ -31,8 +31,8 @@ No tienes que configurar nada ni importar ningún `.sql`.
 | Quién | Dónde entra | Usuario | Contraseña |
 |---|---|---|---|
 | Cliente | `/login` | `cliente@demo.pe` | `Cliente123!` |
-| Gerente | `/admin/login` | `gerente` | `Gerente123!` |
-| Empleado | `/admin/login` | `empleado` | `Empleado123!` |
+| Gerente | `/gerente/login` | `gerente` | `Gerente123!` |
+| Empleado | `/gerente/login` | `empleado` | `Empleado123!` |
 
 ### Si algo falla
 

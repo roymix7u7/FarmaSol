@@ -27,7 +27,10 @@ api.interceptors.response.use(
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(USER_KEY);
       const path = window.location.pathname;
-      if (!path.startsWith('/login') && !path.startsWith('/admin/login')) {
+      // /gerente/login es la ruta real del personal: con la antigua (/admin/login,
+      // que no existe) un gerente con la sesion vencida terminaba en el login de
+      // clientes, donde sus credenciales no funcionan.
+      if (!path.startsWith('/login') && !path.startsWith('/gerente/login')) {
         window.location.href = '/login';
       }
     }
