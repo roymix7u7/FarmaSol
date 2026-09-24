@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -109,13 +110,18 @@ public class PedidoServiceImpl implements PedidoService {
         BigDecimal subtotal = BigDecimal.ZERO;
         BigDecimal descuentoTotal = BigDecimal.ZERO;
 
+        // Precios de todas las lineas de una vez: dentro del bucle era una tanda
+        // de consultas por linea (N+1).
+        Map<Long, PrecioCalculadoDTO> precios = precioService.calcular(
+                lineas.stream().map(CarritoDetalle::getProducto).toList());
+
         for (CarritoDetalle linea : lineas) {
             Producto producto = linea.getProducto();
             if (linea.getCantidad() > producto.getStock()) {
                 throw new BusinessException("Stock insuficiente para '" + producto.getNombre()
                         + "'. Disponible: " + producto.getStock());
             }
-            PrecioCalculadoDTO precio = precioService.calcular(producto);
+            PrecioCalculadoDTO precio = precios.get(producto.getId());
             BigDecimal lineaSubtotal = precio.getPrecioFinal().multiply(BigDecimal.valueOf(linea.getCantidad()));
 
             PedidoDetalle detalle = PedidoDetalle.builder()
