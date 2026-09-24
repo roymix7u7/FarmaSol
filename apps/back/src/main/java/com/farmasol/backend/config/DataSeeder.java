@@ -126,12 +126,12 @@ public class DataSeeder implements CommandLineRunner {
         }
         clienteRepository.save(Cliente.builder()
                 .nombres("Cliente").apellidos("Demo")
-                .usuario("cliente").correo("cliente@demo.pe")
+                .usuario("cliente@demo.pe").correo("cliente@demo.pe")
                 .dni("70000001")
                 .passwordHash(passwordEncoder.encode("Cliente123!"))
                 .telefono("987654321").activo(true)
                 .build());
-        log.info("Seed: cliente demo creado (cliente / Cliente123!)");
+        log.info("Seed: cliente demo creado (cliente@demo.pe / Cliente123!)");
     }
 
     private Categoria cat(String nombre, String slug, Categoria padre, int orden) {
