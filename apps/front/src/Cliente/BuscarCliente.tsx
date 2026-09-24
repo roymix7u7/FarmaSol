@@ -1,28 +1,16 @@
 import { useCallback, useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { catalogoApi } from '../api/catalogo';
 import { FiltrosProductos } from '../shared/FiltrosProductos';
 import { TarjetaProducto } from '../shared/TarjetaProducto';
 import { useAgregarAlCarrito } from '../shared/useAgregarAlCarrito';
-import type { Categoria, Producto } from '../types';
+import type { Producto } from '../types';
 import '../Css/Filtros.css';
 
-/** Busca recursivamente una categoría por su slug (incluye subcategorías). */
-function buscarPorSlug(cats: Categoria[], slug: string): Categoria | null {
-  for (const c of cats) {
-    if (c.slug === slug) return c;
-    if (c.subcategorias && c.subcategorias.length > 0) {
-      const sub = buscarPorSlug(c.subcategorias, slug);
-      if (sub) return sub;
-    }
-  }
-  return null;
-}
+export function BuscarCliente() {
+  const [params] = useSearchParams();
+  const consulta = (params.get('q') ?? '').trim();
 
-export function CategoriaCliente() {
-  const { slug } = useParams<{ slug: string }>();
-
-  const [categoria, setCategoria] = useState<Categoria | null>(null);
   const [productos, setProductos] = useState<Producto[]>([]);
   const [filtrados, setFiltrados] = useState<Producto[]>([]);
   const [cargando, setCargando] = useState(true);
@@ -31,57 +19,45 @@ export function CategoriaCliente() {
   const { agregar, error, toast } = useAgregarAlCarrito();
 
   useEffect(() => {
-    if (!slug) return;
+    if (!consulta) {
+      setProductos([]);
+      setCargando(false);
+      return;
+    }
     setCargando(true);
     setErrorCarga('');
-    setCategoria(null);
-    setProductos([]);
-
     catalogoApi
-      .categoriasArbol()
-      .then((cats) => {
-        const encontrada = buscarPorSlug(cats, slug);
-        if (!encontrada) {
-          setErrorCarga('Categoría no encontrada');
-          setCargando(false);
-          return null;
-        }
-        setCategoria(encontrada);
-        return catalogoApi.productos({
-          idCategoria: encontrada.id,
-          incluirSubcategorias: true,
-        });
-      })
-      .then((prods) => {
-        if (prods) setProductos(prods);
-      })
-      .catch(() => setErrorCarga('No se pudieron cargar los productos'))
+      .productos({ busqueda: consulta })
+      .then(setProductos)
+      .catch(() => setErrorCarga('No se pudo completar la búsqueda. Inténtalo de nuevo.'))
       .finally(() => setCargando(false));
-  }, [slug]);
+  }, [consulta]);
 
   // useCallback para que el efecto de FiltrosProductos no se dispare de más.
   const recibirFiltrados = useCallback((lista: Producto[]) => setFiltrados(lista), []);
 
-  // Dentro de una categoría, filtrar otra vez por categoría solo sirve si la
-  // categoría tiene hijas: ahí las subcategorías son opciones útiles.
-  const tieneSubcategorias = (categoria?.subcategorias?.length ?? 0) > 0;
+  if (!consulta) {
+    return (
+      <div style={{ textAlign: 'center', padding: '60px 20px' }}>
+        <h1 style={{ fontSize: 24, marginBottom: 8 }}>Buscar productos</h1>
+        <p style={{ color: 'var(--texto-suave)' }}>
+          Escribe lo que necesitas en la barra de arriba: un medicamento, una marca o una dolencia.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div>
       <div style={{ marginBottom: 20 }}>
-        <h1 style={{ fontSize: 26, marginBottom: 6 }}>
-          {categoria ? categoria.nombre : 'Categoría'}
+        <h1 style={{ fontSize: 24, marginBottom: 6 }}>
+          Resultados para «{consulta}»
         </h1>
-        {tieneSubcategorias && (
-          <p style={{ color: 'var(--texto-suave)', fontSize: 14 }}>
-            {categoria?.subcategorias?.map((s) => s.nombre).join(' · ')}
-          </p>
-        )}
-        {!cargando && !errorCarga && productos.length > 0 && (
-          <p className="filtros-resumen" style={{ marginTop: 8 }}>
+        {!cargando && !errorCarga && (
+          <p className="filtros-resumen">
             <strong>{filtrados.length}</strong>
-            {filtrados.length === 1 ? ' producto' : ' productos'}
-            {filtrados.length !== productos.length && ` de ${productos.length}`}
+            {filtrados.length === 1 ? ' producto encontrado' : ' productos encontrados'}
+            {filtrados.length !== productos.length && ` de ${productos.length} en total`}
           </p>
         )}
       </div>
@@ -104,19 +80,36 @@ export function CategoriaCliente() {
 
       {cargando ? (
         <p style={{ color: 'var(--texto-suave)', textAlign: 'center', padding: 40 }}>
-          Cargando productos…
+          Buscando…
         </p>
-      ) : productos.length === 0 && !errorCarga ? (
-        <p style={{ color: 'var(--texto-suave)', textAlign: 'center', padding: 40 }}>
-          No hay productos disponibles en esta categoría.
-        </p>
-      ) : productos.length > 0 ? (
+      ) : productos.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '50px 20px' }}>
+          <div style={{ fontSize: 44, marginBottom: 12 }}>🔍</div>
+          <h2 style={{ fontSize: 18, marginBottom: 8 }}>
+            No encontramos nada para «{consulta}»
+          </h2>
+          <p style={{ color: 'var(--texto-suave)', fontSize: 14, marginBottom: 18 }}>
+            Revisa que esté bien escrito, o prueba con el nombre de la marca.
+          </p>
+          <Link
+            to="/"
+            style={{
+              display: 'inline-block',
+              padding: '10px 20px',
+              background: 'var(--verde)',
+              color: '#fff',
+              borderRadius: 8,
+              fontWeight: 600,
+              fontSize: 14,
+              textDecoration: 'none',
+            }}
+          >
+            Volver al inicio
+          </Link>
+        </div>
+      ) : (
         <div className="catalogo-layout">
-          <FiltrosProductos
-            productos={productos}
-            onFiltrar={recibirFiltrados}
-            mostrarCategorias={tieneSubcategorias}
-          />
+          <FiltrosProductos productos={productos} onFiltrar={recibirFiltrados} mostrarCategorias />
 
           {filtrados.length === 0 ? (
             <p style={{ color: 'var(--texto-suave)', textAlign: 'center', padding: 40 }}>
@@ -136,7 +129,7 @@ export function CategoriaCliente() {
             </div>
           )}
         </div>
-      ) : null}
+      )}
 
       {toast && (
         <div

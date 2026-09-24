@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { pedidosApi, type PedidoResumen, type PedidoCompleto, type EstadoPedido } from '../api/pedidos';
 import { clientesApi, type ClientePerfil } from '../api/clientes';
 import { mensajeDeError } from '../api/client';
+import { SubirReceta } from '../shared/SubirReceta';
 
 // ============ ESTILOS DE ESTADO ============
 const estadoConfig: Record<EstadoPedido, { texto: string; bg: string; color: string }> = {
@@ -453,10 +454,12 @@ export function PedidosCliente() {
                             </span>
                           )}
                         </div>
-                        {d.requiereReceta && d.estadoReceta && (
-                          <div style={{ fontSize: 11.5, marginTop: 4, color: '#b45309' }}>
-                            Receta: {d.estadoReceta.replace('_', ' ').toLowerCase()}
-                          </div>
+                        {d.requiereReceta && (
+                          <SubirReceta
+                            idPedidoDetalle={d.idPedidoDetalle}
+                            estadoReceta={d.estadoReceta}
+                            onSubida={() => verDetalle(detalle.id)}
+                          />
                         )}
                       </div>
                       <div style={{ fontWeight: 700 }}>S/ {d.subtotal.toFixed(2)}</div>
