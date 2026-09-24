@@ -1,0 +1,16 @@
+# Override para trabajar contra la BD compartida del equipo (Aiven) en vez del
+# MySQL local. Se usa junto al compose principal:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.aiven.yml up
+#
+# Requiere un .env con los datos de Aiven (ver .env.example).
+
+services:
+  # `profiles` desactiva el MySQL local: con la BD en la nube no hace falta,
+  # y dejarlo corriendo solo gasta memoria.
+  db:
+    profiles: ["no-usar"]
+
+  back:
+    # Sin el contenedor de BD, esperar por su healthcheck colgaria el arranque.
+    depends_on: !reset []

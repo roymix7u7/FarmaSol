@@ -67,7 +67,18 @@ presentación), usen la BD compartida en Aiven:
 1. `cp .env.example .env`
 2. En `.env`, comenta el bloque de BD local y descomenta el de Aiven, con los
    datos que les pase el equipo.
-3. `docker compose up back front` (sin `db`: ya no hace falta el MySQL local)
+3. Levanta con el override de Aiven (no arranca el MySQL local, no hace falta):
+
+   ```bash
+   docker compose -f docker-compose.yml -f docker-compose.aiven.yml up
+   ```
+
+   Si te cansa escribirlo, agrega esto a tu `.env` y te basta `docker compose up`:
+
+   ```
+   COMPOSE_FILE=docker-compose.yml:docker-compose.aiven.yml
+   COMPOSE_PATH_SEPARATOR=:
+   ```
 
 > **Nunca subas el archivo `.env`.** Lleva la contraseña real de la BD y está en
 > `.gitignore` por eso. Si necesitas compartirla, pásala por privado.
