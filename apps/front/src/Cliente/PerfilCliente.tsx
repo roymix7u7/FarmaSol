@@ -2,10 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { clientesApi, type ClientePerfil } from '../api/clientes';
 import { mensajeDeError } from '../api/client';
-import { useAuth } from '../auth/AuthContext';
 
 export function PerfilCliente() {
-  const { user } = useAuth();
   const navigate = useNavigate();
 
   const [perfil, setPerfil] = useState<ClientePerfil | null>(null);
