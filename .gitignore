@@ -1,6 +1,7 @@
 # Variables de entorno con credenciales reales
 .env
 .env.local
+.env.aiven
 
 # Backend
 apps/back/target/

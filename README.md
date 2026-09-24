@@ -94,18 +94,21 @@ nadie te borra tu trabajo.
 Solo si necesitan ver **los mismos datos entre varios** (por ejemplo para la
 presentación), usen la base compartida en la nube:
 
-1. `cp .env.example .env`
-2. Pídele a Roy los datos de conexión y ponlos en ese `.env`
+1. `cp .env.aiven.example .env.aiven`
+2. Pídele a Roy los datos de conexión y ponlos en ese `.env.aiven`
 3. Arranca con:
    ```bash
-   docker compose -f docker-compose.yml -f docker-compose.aiven.yml up
+   docker compose --env-file .env.aiven -f docker-compose.yml -f docker-compose.aiven.yml up
    ```
+
+Para volver al modo normal, `docker compose up` de siempre. Los dos modos son
+independientes: tener `.env.aiven` no afecta a tu base local.
 
 ⚠️ **Cuidado:** ahí lo que borres lo borras para todos. Y va más lento, porque
 la base está en internet y no en tu máquina.
 
-🔒 **Nunca subas el archivo `.env`.** Tiene la contraseña real. Ya está en
-`.gitignore` para que no pase por accidente.
+🔒 **Nunca subas el archivo `.env.aiven`.** Tiene la contraseña real. Ya está
+en `.gitignore` para que no pase por accidente.
 
 ---
 
