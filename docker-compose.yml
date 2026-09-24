@@ -1,0 +1,73 @@
+# Levanta todo FarmaSol con un solo comando:
+#   docker compose up
+#
+# - MySQL local con la data de prueba que siembra DataSeeder
+# - Backend Spring Boot en http://localhost:8080
+# - Frontend Vite en http://localhost:5173
+#
+# Para apuntar a la BD compartida de Aiven en vez del MySQL local,
+# copia .env.example a .env y completa los datos. Ver README.md.
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: farmasol-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-admin123}
+      MYSQL_DATABASE: ${DB_NAME:-farmasol_db}
+    ports:
+      - "${DB_PORT_HOST:-3307}:3306"
+    volumes:
+      - farmasol-db-data:/var/lib/mysql
+    healthcheck:
+      # El backend espera a que MySQL acepte conexiones de verdad, no solo a que
+      # el contenedor arranque: sin esto el arranque falla con "Access denied".
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${DB_PASSWORD:-admin123}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  back:
+    build:
+      context: ./apps/back
+    container_name: farmasol-back
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-farmasol_db}
+      DB_USER: ${DB_USER:-root}
+      DB_PASSWORD: ${DB_PASSWORD:-admin123}
+      DB_SSL_MODE: ${DB_SSL_MODE:-DISABLED}
+      FARMASOL_JWT_SECRET: ${FARMASOL_JWT_SECRET:-ZmFybWFzb2wtZGV2LXNlY3JldC1jYW1iaWFyLWVuLXByb2R1Y2Npb24tMjAyNi1jbGF2ZS1sYXJnYQ==}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+    ports:
+      - "8080:8080"
+    volumes:
+      - farmasol-uploads:/app/uploads
+
+  front:
+    build:
+      context: ./apps/front
+    container_name: farmasol-front
+    restart: unless-stopped
+    depends_on:
+      - back
+    environment:
+      # El proxy de Vite apunta al contenedor del backend, no a localhost.
+      VITE_API_PROXY_TARGET: http://back:8080
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./apps/front/src:/app/src
+      - ./apps/front/public:/app/public
+      - ./apps/front/index.html:/app/index.html
+
+volumes:
+  farmasol-db-data:
+  farmasol-uploads:

@@ -1,0 +1,18 @@
+# Variables de entorno con credenciales reales
+.env
+.env.local
+
+# Backend
+apps/back/target/
+apps/back/uploads/
+apps/back/src/main/resources/application-local.properties
+
+# Frontend
+apps/front/node_modules/
+apps/front/dist/
+
+# Editores
+.idea/
+.vs/
+*.iml
+.DS_Store
