@@ -77,7 +77,7 @@ export function LoginCliente() {
             ¿No tienes cuenta? <Link to="/registro">Regístrate</Link>
           </p>
           <p style={{ marginTop: 6 }}>
-            <Link to="/admin/login">¿Eres personal de FarmaSol?</Link>
+            <Link to="/gerente/login">¿Eres personal de FarmaSol?</Link>
           </p>
         </div>
       </div>

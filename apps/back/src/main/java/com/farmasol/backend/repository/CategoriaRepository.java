@@ -45,4 +45,15 @@ public interface CategoriaRepository extends JpaRepository<Categoria, Long> {
             SELECT id_categoria FROM ancestros
             """, nativeQuery = true)
     List<Long> findIdsAncestros(@Param("idHoja") Long idHoja);
+
+    /**
+     * Pares (id, idPadre) de todas las categorías, para reconstruir el árbol en
+     * memoria de una sola vez.
+     *
+     * <p>Los CTE recursivos de arriba resuelven una categoría por llamada. Cuando
+     * hay que resolver los ancestros de una lista entera de productos, eso es una
+     * consulta por producto; con esto es una sola para todo el árbol.
+     */
+    @Query("SELECT c.id, c.categoriaPadre.id FROM Categoria c")
+    List<Object[]> findIdYPadre();
 }

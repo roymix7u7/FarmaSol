@@ -61,6 +61,9 @@ services:
     environment:
       # El proxy de Vite apunta al contenedor del backend, no a localhost.
       VITE_API_PROXY_TARGET: http://back:8080
+      # Sin esto, Vite no detecta los cambios que haces en tu editor: los bind
+      # mounts de Windows y Mac no avisan al contenedor cuando un archivo cambia.
+      VITE_USE_POLLING: "true"
     ports:
       - "5173:5173"
     volumes:

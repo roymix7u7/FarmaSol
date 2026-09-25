@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -122,9 +123,14 @@ public class CarritoServiceImpl implements CarritoService {
         BigDecimal descuentoTotal = BigDecimal.ZERO;
         int cantidadItems = 0;
 
+        // Los precios de todo el carrito se resuelven de una vez: calcularlos
+        // dentro del bucle lanzaba varias consultas por linea (N+1).
+        Map<Long, PrecioCalculadoDTO> precios = precioService.calcular(
+                carrito.getDetalles().stream().map(CarritoDetalle::getProducto).toList());
+
         for (CarritoDetalle d : carrito.getDetalles()) {
             Producto p = d.getProducto();
-            PrecioCalculadoDTO precio = precioService.calcular(p);
+            PrecioCalculadoDTO precio = precios.get(p.getId());
             BigDecimal lineaSubtotal = precio.getPrecioFinal().multiply(BigDecimal.valueOf(d.getCantidad()));
             BigDecimal lineaDescuento = precio.getDescuentoUnitario().multiply(BigDecimal.valueOf(d.getCantidad()));
 

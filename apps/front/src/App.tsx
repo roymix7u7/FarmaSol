@@ -3,12 +3,13 @@ import { AuthProvider } from './auth/AuthContext';
 import { RequireAuth, RequireStaff } from './auth/RequireAuth';
 import { PublicLayout } from './layout/PublicLayout';
 import { HomeCliente } from './Cliente/HomeCliente';
-import { EnConstruccion, Nosotros } from './shared/EnConstruccion';
+import { Nosotros } from './shared/EnConstruccion';
 import { LoginCliente } from './Cliente/LoginCliente';
 import { RegistroCliente } from './Cliente/RegistroCliente';
 import { LoginGerente } from './Gerente/LoginGerente';
 import { HomeGerente } from './Gerente/HomeGerente';
 import { ForgotPasswordGerente } from './Gerente/ForgotPasswordGerente';
+import { BuscarCliente } from './Cliente/BuscarCliente';
 import { CategoriaCliente } from './Cliente/CategoriaCliente';
 import { CarritoCliente } from './Cliente/CarritoCliente';
 import { EntregaCliente } from './Cliente/EntregaCliente';
@@ -37,7 +38,7 @@ function App() {
             <Route path="/" element={<HomeCliente />} />
             <Route path="/nosotros" element={<Nosotros />} />
             <Route path="/categoria/:slug" element={<CategoriaCliente />} />
-            <Route path="/buscar" element={<EnConstruccion titulo="Resultados de búsqueda" />} />
+            <Route path="/buscar" element={<BuscarCliente />} />
             <Route path="/mi-perfil" element={<RequireAuth><PerfilCliente /></RequireAuth>} />
             <Route path="/mis-pedidos" element={<RequireAuth><PedidosCliente /></RequireAuth>} />
           </Route>

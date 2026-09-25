@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +42,10 @@ public class ProductoServiceImpl implements ProductoService {
         } else {
             productos = productoRepository.findAll();
         }
-        return productos.stream().map(this::toResponse).toList();
+        Map<Long, PrecioCalculadoDTO> precios = precioService.calcular(productos);
+        return productos.stream()
+                .map(p -> toResponse(p, precios.get(p.getId())))
+                .toList();
     }
 
     @Override
@@ -105,7 +109,10 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
     private ProductoResponse toResponse(Producto p) {
-        PrecioCalculadoDTO precio = precioService.calcular(p);
+        return toResponse(p, precioService.calcular(p));
+    }
+
+    private ProductoResponse toResponse(Producto p, PrecioCalculadoDTO precio) {
         return ProductoResponse.builder()
                 .id(p.getId())
                 .nombre(p.getNombre())

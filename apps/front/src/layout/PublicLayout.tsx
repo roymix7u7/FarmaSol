@@ -137,6 +137,10 @@ export function PublicLayout() {
 
       <footer className="pub-footer">
         <p>FarmaSol · Farmacia y Botica · Todos los productos con registro sanitario</p>
+        {/* Unica entrada al portal interno desde la web publica. */}
+        <Link to="/gerente/login" className="pub-footer-staff">
+          Acceso personal
+        </Link>
       </footer>
     </div>
   );
