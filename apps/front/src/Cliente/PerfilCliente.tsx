@@ -255,7 +255,7 @@ export function PerfilCliente() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <label style={{ fontSize: 13, fontWeight: 600 }}>
-                    DNI / Documento{' '}
+                    {perfil.tipoDocumento === 'CARNET_EXTRANJERIA' ? 'Carné de extranjería' : 'DNI'}{' '}
                     <span style={{ color: 'var(--texto-suave)', fontWeight: 400 }}>
                       (no editable)
                     </span>

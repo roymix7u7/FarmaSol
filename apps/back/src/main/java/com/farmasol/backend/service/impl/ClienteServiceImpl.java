@@ -5,6 +5,7 @@ import com.farmasol.backend.dto.cliente.ClienteUpdateRequest;
 import com.farmasol.backend.exception.BusinessException;
 import com.farmasol.backend.exception.ResourceNotFoundException;
 import com.farmasol.backend.model.Cliente;
+import com.farmasol.backend.model.enums.TipoDocumento;
 import com.farmasol.backend.repository.ClienteRepository;
 import com.farmasol.backend.service.ClienteService;
 import lombok.RequiredArgsConstructor;
@@ -72,6 +73,8 @@ public class ClienteServiceImpl implements ClienteService {
                 .apellidos(c.getApellidos())
                 .usuario(c.getUsuario())
                 .correo(c.getCorreo())
+                // Nulo = cliente registrado antes de existir el campo, cuando solo había DNI.
+                .tipoDocumento((c.getTipoDocumento() == null ? TipoDocumento.DNI : c.getTipoDocumento()).name())
                 .dni(c.getDni())
                 .telefono(c.getTelefono())
                 .activo(c.getActivo())

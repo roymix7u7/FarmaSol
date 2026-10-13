@@ -68,3 +68,27 @@ export const pedidosApi = {
     return api.get<PedidoCompleto>(`/pedidos/mios/${id}`).then((r) => r.data);
   },
 };
+
+/** Operaciones del panel de gestión (requieren rol GERENTE o EMPLEADO). */
+export const pedidosAdminApi = {
+  listar(estado?: EstadoPedido) {
+    return api.get<PedidoResumen[]>('/pedidos', { params: { estado } }).then((r) => r.data);
+  },
+
+  obtener(id: number) {
+    return api.get<PedidoCompleto>(`/pedidos/${id}`).then((r) => r.data);
+  },
+
+  cambiarEstado(id: number, nuevoEstado: EstadoPedido) {
+    return api.patch<PedidoCompleto>(`/pedidos/${id}/estado`, { nuevoEstado }).then((r) => r.data);
+  },
+};
+
+/** Transiciones permitidas: evita ofrecer saltos que el backend rechazaria. */
+export const SIGUIENTES_ESTADOS: Record<EstadoPedido, EstadoPedido[]> = {
+  PENDIENTE: ['CONFIRMADO', 'CANCELADO'],
+  CONFIRMADO: ['EN_CAMINO', 'CANCELADO'],
+  EN_CAMINO: ['ENTREGADO', 'CANCELADO'],
+  ENTREGADO: [],
+  CANCELADO: [],
+};

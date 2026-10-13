@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { catalogoApi } from '../api/catalogo';
 import { api, mensajeDeError } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import type { Categoria, Producto } from '../types';
 import '../Css/InventarioGerente.css';
 
@@ -33,6 +34,12 @@ const FORM_VACIO: ProductoForm = {
 
 export function InventarioGerente() {
   const [productos, setProductos] = useState<Producto[]>([]);
+  // El catálogo y los precios solo los toca el gerente: el backend lo exige
+  // (403 para el empleado), y aquí se ocultan los controles para no ofrecer
+  // acciones que van a fallar.
+  const { user } = useAuth();
+  const puedeEditar = user?.rol === 'GERENTE';
+
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [busqueda, setBusqueda] = useState('');
   const [cargando, setCargando] = useState(true);
@@ -163,9 +170,16 @@ export function InventarioGerente() {
             value={busqueda}
             onChange={(e) => setBusqueda(e.target.value)}
           />
-          <button className="btn-primary" onClick={abrirCrear}>
-            <i className="fa-solid fa-plus"></i> Nuevo Producto
-          </button>
+          {puedeEditar ? (
+            <button className="btn-primary" onClick={abrirCrear}>
+              <i className="fa-solid fa-plus"></i> Nuevo Producto
+            </button>
+          ) : (
+            <span style={{ fontSize: 13, color: '#6b7280' }}>
+              <i className="fa-solid fa-lock" style={{ marginRight: 6 }}></i>
+              Solo lectura: el catálogo y los precios los gestiona el administrador
+            </span>
+          )}
         </div>
 
         {error && <div style={{ padding: 16, color: '#dc2626', fontSize: 14 }}>{error}</div>}
@@ -182,7 +196,7 @@ export function InventarioGerente() {
                 <th>Stock</th>
                 <th>Precio</th>
                 <th>Estado</th>
-                <th>Acciones</th>
+                {puedeEditar && <th>Acciones</th>}
               </tr>
             </thead>
             <tbody>
@@ -198,12 +212,14 @@ export function InventarioGerente() {
                     <td>
                       <span className={`badge ${estado.clase}`}>{estado.texto}</span>
                     </td>
-                    <td>
-                      <i
-                        className="fa-solid fa-pencil action-icon"
-                        onClick={() => abrirEditar(prod)}
-                      ></i>
-                    </td>
+                    {puedeEditar && (
+                      <td>
+                        <i
+                          className="fa-solid fa-pencil action-icon"
+                          onClick={() => abrirEditar(prod)}
+                        ></i>
+                      </td>
+                    )}
                   </tr>
                 );
               })}

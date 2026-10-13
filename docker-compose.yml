@@ -16,6 +16,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-admin123}
       MYSQL_DATABASE: ${DB_NAME:-farmasol_db}
+      TZ: ${TZ:-America/Lima}
     ports:
       - "${DB_PORT_HOST:-3307}:3306"
     volumes:
@@ -44,6 +45,13 @@ services:
       DB_USER: ${DB_USER:-root}
       DB_PASSWORD: ${DB_PASSWORD:-admin123}
       DB_SSL_MODE: ${DB_SSL_MODE:-DISABLED}
+      # Zona horaria del negocio. Sin esto el contenedor corre en UTC y, de noche,
+      # las ventas del dia se registran con la fecha de mañana: el reporte diario
+      # mostraba S/0 a partir de las 7pm hora de Lima.
+      TZ: ${TZ:-America/Lima}
+      # Debe coincidir con TZ: si difieren, el driver JDBC desplaza las fechas al
+      # escribirlas y el dia del reporte deja de ser el dia real de la venta.
+      DB_TIMEZONE: ${TZ:-America/Lima}
       FARMASOL_JWT_SECRET: ${FARMASOL_JWT_SECRET:-ZmFybWFzb2wtZGV2LXNlY3JldC1jYW1iaWFyLWVuLXByb2R1Y2Npb24tMjAyNi1jbGF2ZS1sYXJnYQ==}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
     ports:
