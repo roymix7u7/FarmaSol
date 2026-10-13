@@ -138,3 +138,115 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------------------------------------------------- validación por campo */
+
+/* Contenedor del input: el check se ubica dentro, a la derecha. */
+.campo-caja {
+  position: relative;
+}
+
+.auth-field.es-valido input,
+.auth-field.es-valido select {
+  border-color: var(--verde);
+  padding-right: 40px;
+}
+
+.auth-field.es-invalido input,
+.auth-field.es-invalido select {
+  border-color: #dc2626;
+}
+
+/* El check verde que pide el pliego cuando el campo es válido. */
+.campo-check {
+  position: absolute;
+  right: 13px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--verde);
+  font-size: 17px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.campo-error {
+  color: #dc2626;
+  font-size: 12.5px;
+  margin-top: 5px;
+  line-height: 1.35;
+}
+
+.campo-ayuda {
+  color: var(--texto-suave);
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+/* Prefijo +51 pegado al input del teléfono. */
+.campo-prefijo {
+  display: flex;
+}
+
+.campo-prefijo span {
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  border: 1.5px solid var(--borde);
+  border-right: none;
+  border-radius: 10px 0 0 10px;
+  background: #f3f4f6;
+  color: var(--texto-suave);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.campo-prefijo .campo-caja {
+  flex: 1;
+}
+
+.campo-prefijo input {
+  border-radius: 0 10px 10px 0;
+}
+
+.auth-field select {
+  width: 100%;
+  height: 46px;
+  border: 1.5px solid var(--borde);
+  border-radius: 10px;
+  padding: 0 12px;
+  font-size: 15px;
+  background: var(--blanco);
+  color: var(--texto);
+  outline: none;
+  font-family: inherit;
+}
+
+.auth-field select:focus {
+  border-color: var(--verde);
+}
+
+/* Requisitos de la contraseña, que se van tachando mientras se escribe. */
+.requisitos {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.requisitos li {
+  font-size: 12px;
+  color: var(--texto-suave);
+}
+
+.requisitos li.cumple {
+  color: var(--verde);
+  font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .auth-grid {
+    grid-template-columns: 1fr;
+  }
+}

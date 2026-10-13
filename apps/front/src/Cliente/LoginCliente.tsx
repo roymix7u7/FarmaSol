@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
+import axios from 'axios';
 import { mensajeDeError } from '../api/client';
+import { validarCorreo } from '../shared/validaciones';
 import fondo from '../assets/logoffondo.jpg';
 import '../Css/Auth.css';
 
@@ -19,16 +21,32 @@ export function LoginCliente() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [correoTocado, setCorreoTocado] = useState(false);
+
+  const errorCorreo = validarCorreo(usuario.trim());
+  const correoValido = !errorCorreo;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
+    setCorreoTocado(true);
+    if (errorCorreo) return;
+    if (!password) {
+      setError('Escribe tu contraseña');
+      return;
+    }
     setCargando(true);
     try {
       await loginCliente(usuario.trim(), password);
       navigate(destino, { replace: true });
     } catch (err) {
-      setError(mensajeDeError(err, 'Usuario o contraseña incorrectos'));
+      // Mensaje genérico a propósito: decir cuál de los dos falló le diría a
+      // un tercero si ese correo tiene cuenta.
+      if (axios.isAxiosError(err) && err.response?.status === 401) {
+        setError('Correo o contraseña incorrectos');
+      } else {
+        setError(mensajeDeError(err, 'No se pudo iniciar sesión'));
+      }
     } finally {
       setCargando(false);
     }
@@ -40,19 +58,33 @@ export function LoginCliente() {
         <h1 className="auth-brand">FarmaSOL</h1>
         <h2 className="auth-title">Iniciar Sesión</h2>
 
-        <form onSubmit={onSubmit}>
+        <form onSubmit={onSubmit} noValidate>
           {error && <div className="form-error">{error}</div>}
 
-          <div className="auth-field">
+          <div
+            className={`auth-field${correoValido ? ' es-valido' : correoTocado && usuario ? ' es-invalido' : ''}`}
+          >
             <label htmlFor="usuario">Correo electrónico:</label>
-            <input
-              id="usuario"
-              type="email"
-              autoComplete="username"
-              required
-              value={usuario}
-              onChange={(e) => setUsuario(e.target.value)}
-            />
+            <div className="campo-caja">
+              <input
+                id="usuario"
+                type="email"
+                autoComplete="username"
+                value={usuario}
+                onChange={(e) => setUsuario(e.target.value)}
+                onBlur={() => setCorreoTocado(true)}
+              />
+              {correoValido && (
+                <span className="campo-check" aria-hidden="true">
+                  ✓
+                </span>
+              )}
+            </div>
+            {correoTocado && errorCorreo && (
+              <div className="campo-error" role="alert">
+                {errorCorreo}
+              </div>
+            )}
           </div>
 
           <div className="auth-field">

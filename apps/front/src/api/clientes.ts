@@ -6,6 +6,7 @@ export interface ClientePerfil {
   apellidos: string;
   usuario: string;
   correo: string;
+  tipoDocumento: 'DNI' | 'CARNET_EXTRANJERIA';
   dni: string;
   telefono: string | null;
   activo: boolean;

@@ -67,6 +67,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
     }
 
+    /** 423 Locked: la cuenta existe pero no puede entrar por ahora. */
+    @ExceptionHandler(CuentaBloqueadaException.class)
+    public ResponseEntity<ErrorResponseDTO> handleCuentaBloqueada(
+            CuentaBloqueadaException ex, HttpServletRequest request) {
+        return new ResponseEntity<>(build(HttpStatus.LOCKED, ex.getMessage(), request), HttpStatus.LOCKED);
+    }
+
     @ExceptionHandler({AuthenticationException.class, BadCredentialsException.class})
     public ResponseEntity<ErrorResponseDTO> handleAuthentication(
             Exception ex, HttpServletRequest request) {

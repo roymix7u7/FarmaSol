@@ -1,5 +1,6 @@
 package com.farmasol.backend.model;
 
+import com.farmasol.backend.model.enums.TipoDocumento;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -43,6 +44,17 @@ public class Cliente {
     @Column(name = "password_hash", nullable = false, length = 255)
     private String passwordHash;
 
+    /**
+     * Nullable en la base a propósito: así ddl-auto puede añadir la columna sobre
+     * clientes ya registrados. Un valor nulo se interpreta como DNI, que era el
+     * único documento aceptado antes de existir este campo.
+     */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "tipo_documento", length = 25)
+    @Builder.Default
+    private TipoDocumento tipoDocumento = TipoDocumento.DNI;
+
+    /** Número del documento indicado en tipoDocumento (no siempre es un DNI). */
     @Column(nullable = false, length = 20)
     private String dni;
 

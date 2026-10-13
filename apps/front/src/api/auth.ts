@@ -1,13 +1,16 @@
 import { api } from './client';
 import type { AuthResponse } from '../types';
+import type { TipoDocumento } from '../shared/validaciones';
 
 export interface RegistroClientePayload {
   nombres: string;
   apellidos: string;
+  tipoDocumento: TipoDocumento;
+  /** Número del documento elegido en tipoDocumento (no siempre es un DNI). */
   dni: string;
   correo: string;
   password: string;
-  telefono?: string;
+  telefono: string;
 }
 
 export const authApi = {

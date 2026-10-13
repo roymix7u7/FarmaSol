@@ -55,6 +55,18 @@ public class Personal {
     @Builder.Default
     private Boolean activo = true;
 
+    /**
+     * Intentos fallidos seguidos en el login del portal. Nullable para que
+     * ddl-auto pueda añadir la columna sobre personal ya registrado (nulo = 0).
+     */
+    @Column(name = "intentos_fallidos")
+    @Builder.Default
+    private Integer intentosFallidos = 0;
+
+    /** Mientras esta fecha no haya pasado, la cuenta no puede iniciar sesión. */
+    @Column(name = "bloqueado_hasta")
+    private LocalDateTime bloqueadoHasta;
+
     @Column(name = "fecha_creacion", nullable = false, updatable = false)
     private LocalDateTime fechaCreacion;
 
