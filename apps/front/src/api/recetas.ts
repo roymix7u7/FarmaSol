@@ -36,6 +36,30 @@ export const recetasApi = {
   },
 };
 
+/** Revisión de recetas desde el panel (rol GERENTE o EMPLEADO). */
+export const recetasAdminApi = {
+  pendientes() {
+    return api.get<Receta[]>('/recetas/pendientes').then((r) => r.data);
+  },
+
+  aprobar(id: number) {
+    return api.patch<Receta>(`/recetas/${id}/aprobar`).then((r) => r.data);
+  },
+
+  rechazar(id: number, motivo: string) {
+    return api.patch<Receta>(`/recetas/${id}/rechazar`, { motivo }).then((r) => r.data);
+  },
+
+  /** El archivo se abre en una pestaña nueva; el token va en la cabecera, no en la URL. */
+  async abrirArchivo(id: number) {
+    const res = await api.get(`/recetas/${id}/archivo`, { responseType: 'blob' });
+    const url = URL.createObjectURL(res.data as Blob);
+    window.open(url, '_blank', 'noopener');
+    // Se revoca con holgura para que el navegador alcance a cargarlo.
+    setTimeout(() => URL.revokeObjectURL(url), 60_000);
+  },
+};
+
 /** Límites que acepta el backend (application.properties: max-file-size 5MB). */
 export const RECETA_MAX_BYTES = 5 * 1024 * 1024;
 export const RECETA_TIPOS = ['application/pdf', 'image/jpeg', 'image/png'];

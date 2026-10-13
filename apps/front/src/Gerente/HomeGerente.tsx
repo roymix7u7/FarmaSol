@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import '../Css/HomeGerente.css';
+import { DashboardGerente } from './DashboardGerente';
 import { InventarioGerente } from './InventarioGerente';
 import { PedidosGerente } from './PedidosGerente';
 import { ReportesGerente } from './ReportesGerente';
@@ -9,12 +10,12 @@ import { PersonalGerente } from './PersonalGerente';
 import { PromocionesGerente } from './PromocionesGerente';
 import { RecetasGerente } from './RecetasGerente';
 
-type Vista = 'inventario' | 'pedidos' | 'reportes' | 'recetas' | 'promociones' | 'personal';
+type Vista = 'resumen' | 'inventario' | 'pedidos' | 'reportes' | 'recetas' | 'promociones' | 'personal';
 
 export function HomeGerente() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [vistaActiva, setVistaActiva] = useState<Vista>('inventario');
+  const [vistaActiva, setVistaActiva] = useState<Vista>('resumen');
 
   const esGerente = user?.rol === 'GERENTE';
 
@@ -24,6 +25,7 @@ export function HomeGerente() {
   };
 
   const tituloVista: Record<Vista, string> = {
+    resumen: 'Resumen General',
     inventario: 'Gestión de Inventario',
     pedidos: 'Control de Pedidos y Ventas',
     reportes: 'Reportes',
@@ -45,6 +47,12 @@ export function HomeGerente() {
             <img src="/img/farmsol.png" alt="FarmaSOL" />
           </div>
           <nav className="sidebar-nav">
+            <button
+              className={`sidebar-item ${vistaActiva === 'resumen' ? 'active' : ''}`}
+              onClick={() => setVistaActiva('resumen')}
+            >
+              <i className="fa-solid fa-chart-pie"></i> Resumen
+            </button>
             <button
               className={`sidebar-item ${vistaActiva === 'inventario' ? 'active' : ''}`}
               onClick={() => setVistaActiva('inventario')}
@@ -105,6 +113,7 @@ export function HomeGerente() {
           </div>
         </div>
 
+        {vistaActiva === 'resumen' && <DashboardGerente onIrA={setVistaActiva} />}
         {vistaActiva === 'inventario' && <InventarioGerente />}
         {vistaActiva === 'pedidos' && <PedidosGerente />}
         {vistaActiva === 'reportes' && <ReportesGerente />}
