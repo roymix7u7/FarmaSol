@@ -135,7 +135,8 @@ export function PedidosGerente() {
           </p>
         ) : (
           <>
-            <table className="data-table">
+            <div className="tabla-scroll">
+            <table className="data-table ajustada">
               <thead>
                 <tr>
                   <th>Orden</th>
@@ -180,6 +181,7 @@ export function PedidosGerente() {
                 })}
               </tbody>
             </table>
+            </div>
             <div className="table-footer">
               Mostrando {visibles.length} de {pedidos.length}{' '}
               {pedidos.length === 1 ? 'pedido' : 'pedidos'}

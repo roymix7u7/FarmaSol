@@ -111,7 +111,8 @@ export function RecetasGerente() {
           </p>
         ) : (
           <>
-            <table className="data-table">
+            <div className="tabla-scroll">
+            <table className="data-table ajustada">
               <thead>
                 <tr>
                   <th>Pedido</th>
@@ -161,6 +162,7 @@ export function RecetasGerente() {
                 ))}
               </tbody>
             </table>
+            </div>
             <div className="table-footer">
               {lista.length} {lista.length === 1 ? 'receta pendiente' : 'recetas pendientes'}
             </div>

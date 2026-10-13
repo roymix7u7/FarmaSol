@@ -416,3 +416,32 @@
   color: var(--texto-suave);
   font-weight: 600;
 }
+
+/* ---------------------------------------------------- tablas legibles */
+
+/*
+ * Las tablas del panel usan table-layout: fixed (HomeGerente.css), que reparte
+ * el ancho en partes iguales y recorta con "…". Con códigos, fechas y correos eso
+ * deja la tabla ilegible: "PED-2026-00…" no sirve para encontrar un pedido.
+ * Con .ajustada cada columna toma el ancho de su contenido y, si no cabe, la
+ * tabla se desplaza dentro de su tarjeta en lugar de recortar.
+ */
+.tabla-scroll {
+  overflow-x: auto;
+}
+
+.data-table.ajustada {
+  table-layout: auto;
+}
+
+.data-table.ajustada th,
+.data-table.ajustada td {
+  overflow: visible;
+  text-overflow: clip;
+}
+
+/* Para textos largos de verdad (título + descripción): que bajen de línea. */
+.data-table.ajustada td.envolver {
+  white-space: normal;
+  min-width: 220px;
+}

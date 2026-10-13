@@ -155,7 +155,8 @@ export function PersonalGerente() {
           </p>
         ) : (
           <>
-            <table className="data-table">
+            <div className="tabla-scroll">
+            <table className="data-table ajustada">
               <thead>
                 <tr>
                   <th>Colaborador</th>
@@ -205,6 +206,7 @@ export function PersonalGerente() {
                 ))}
               </tbody>
             </table>
+            </div>
             <div className="table-footer">
               Mostrando {visibles.length} de {lista.length}{' '}
               {lista.length === 1 ? 'colaborador' : 'colaboradores'}

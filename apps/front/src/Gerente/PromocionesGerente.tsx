@@ -201,7 +201,8 @@ export function PromocionesGerente() {
           </p>
         ) : (
           <>
-            <table className="data-table">
+            <div className="tabla-scroll">
+            <table className="data-table ajustada">
               <thead>
                 <tr>
                   <th>Promoción</th>
@@ -216,7 +217,7 @@ export function PromocionesGerente() {
               <tbody>
                 {lista.map((p) => (
                   <tr key={p.id}>
-                    <td>
+                    <td className="envolver">
                       <strong>{p.titulo}</strong>
                       {p.descripcion && (
                         <div style={{ fontSize: 12, color: 'var(--texto-suave)' }}>
@@ -262,6 +263,7 @@ export function PromocionesGerente() {
                 ))}
               </tbody>
             </table>
+            </div>
             <div className="table-footer">
               {lista.length} {lista.length === 1 ? 'promoción' : 'promociones'} · {vigentes} vigente
               {vigentes === 1 ? '' : 's'}
