@@ -343,3 +343,86 @@
     font-size: 14px;
     color: #6b7280;
 }
+/*
+ * Pantallas angostas (celular). La barra lateral de 260px dejaba al contenido
+ * un tercio de la pantalla y todo el panel quedaba cortado. Aquí la barra pasa a
+ * ser una cabecera: logo y "Cerrar sesión" arriba, y el menú en una fila que se
+ * desplaza en horizontal. Va al final del archivo para no tocar el diseño de
+ * escritorio.
+ */
+@media (max-width: 760px) {
+    .dashboard-layout {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        padding: 10px 0 0;
+        border-right: none;
+        border-bottom: 1px solid #e5e7eb;
+        overflow: visible;
+    }
+
+    .sidebar > div {
+        min-width: 0;
+    }
+
+    .sidebar-logo {
+        padding: 0 16px 8px;
+    }
+
+    .sidebar-logo img {
+        height: 32px;
+    }
+
+    .sidebar-nav {
+        flex-direction: row;
+        overflow-x: auto;
+        gap: 4px;
+        padding: 0 10px 8px;
+        scrollbar-width: thin;
+    }
+
+    .sidebar-item {
+        width: auto;
+        flex-shrink: 0;
+        white-space: nowrap;
+        padding: 8px 12px;
+        font-size: 13px;
+        gap: 8px;
+    }
+
+    /*
+     * Arriba a la derecha, a la altura del logo, para no sumar otra fila. El ancho
+     * se anula: el estilo base lo estira a todo el ancho, y entonces su texto
+     * caía a la izquierda, encima del logo.
+     */
+    .sidebar-logout {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: auto;
+        margin: 0;
+        padding: 6px 10px;
+        border-top: none;
+        font-size: 12.5px;
+    }
+
+    .main-content {
+        padding: 16px;
+    }
+
+    .content-header {
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .content-title {
+        font-size: 19px;
+    }
+}
