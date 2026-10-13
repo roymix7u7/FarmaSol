@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { mensajeDeError } from '../api/client';
+import { useAuth } from '../auth/AuthContext';
 import {
   rangoUltimosDias,
   reportesApi,
@@ -79,6 +80,8 @@ interface Props {
 }
 
 export function DashboardGerente({ onIrA }: Props) {
+  // El empleado ve el inventario pero no lo edita: el atajo no puede prometer "reponer".
+  const esGerente = useAuth().user?.rol === 'GERENTE';
   const [ventas, setVentas] = useState<VentasPorPeriodo[]>([]);
   const [estados, setEstados] = useState<PedidosPorEstado[]>([]);
   const [masVendidos, setMasVendidos] = useState<ProductoMasVendido[]>([]);
@@ -374,7 +377,7 @@ export function DashboardGerente({ onIrA }: Props) {
                       stock bajo
                     </strong>
                     <button className="btn-chico" onClick={() => onIrA('inventario')}>
-                      Reponer
+                      {esGerente ? 'Reponer' : 'Ver inventario'}
                     </button>
                   </div>
                   <table className="mini-tabla">

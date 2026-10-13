@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { mensajeDeError } from '../api/client';
 import { personalApi, type Personal, type PersonalPayload, type RolPersonal } from '../api/personal';
+import { validarPassword } from '../shared/validaciones';
 import '../Css/Dashboard.css';
 
 const VACIO: PersonalPayload = {
@@ -73,17 +74,9 @@ export function PersonalGerente() {
     if (!/^[\w.-]+@farmasol\.pe$/i.test(form.correo.trim())) {
       return 'El correo debe ser corporativo, terminado en @farmasol.pe';
     }
-    if (!editando) {
-      if (!form.password || form.password.length < 8) {
-        return 'La contraseña debe tener al menos 8 caracteres.';
-      }
-      if (!/[A-Z]/.test(form.password) || !/\d/.test(form.password)) {
-        return 'La contraseña necesita al menos una mayúscula y un número.';
-      }
-    } else if (form.password && form.password.length > 0) {
-      if (form.password.length < 8 || !/[A-Z]/.test(form.password) || !/\d/.test(form.password)) {
-        return 'La contraseña nueva necesita 8 caracteres, una mayúscula y un número.';
-      }
+    // Al editar, la contraseña vacía significa "no cambiarla".
+    if (!editando || form.password) {
+      return validarPassword(form.password ?? '');
     }
     return null;
   }
@@ -316,8 +309,9 @@ export function PersonalGerente() {
                   marginTop: 14,
                 }}
               >
-                El rol Empleado no puede gestionar promociones ni el personal. Sí puede ver
-                inventario, pedidos y revisar recetas.
+                Restricción de permisos: el rol Empleado no puede modificar el catálogo, los
+                precios, las promociones ni el personal. Sí puede consultar el inventario,
+                gestionar pedidos y revisar recetas.
               </p>
             )}
 
