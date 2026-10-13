@@ -4,8 +4,13 @@ import type { EstadoPedido } from './pedidos';
 
 export interface VentasPorPeriodo {
   dia: string;
+  /** Operaciones del día: pedidos web más ventas en tienda. */
   cantidadPedidos: number;
+  /** Total del día: web más tienda. */
   monto: number;
+  /** Parte de lo anterior que se vendió en el mostrador. */
+  cantidadPresencial: number;
+  montoPresencial: number;
 }
 
 export interface ProductoMasVendido {

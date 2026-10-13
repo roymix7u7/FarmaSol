@@ -15,7 +15,7 @@ export function serieCompleta(ventas: VentasPorPeriodo[], dias: number): VentasP
     const f = new Date();
     f.setDate(f.getDate() - i);
     const dia = isoLocal(f);
-    serie.push(porDia.get(dia) ?? { dia, cantidadPedidos: 0, monto: 0 });
+    serie.push(porDia.get(dia) ?? { dia, cantidadPedidos: 0, monto: 0, cantidadPresencial: 0, montoPresencial: 0 });
   }
   return serie;
 }

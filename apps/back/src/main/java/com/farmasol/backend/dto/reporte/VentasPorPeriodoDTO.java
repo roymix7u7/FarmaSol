@@ -15,6 +15,11 @@ import java.time.LocalDate;
 public class VentasPorPeriodoDTO {
 
     private LocalDate dia;
+    /** Operaciones del día: pedidos web más ventas en tienda. */
     private long cantidadPedidos;
+    /** Total del día: web más tienda. */
     private BigDecimal monto;
+    /** Parte de lo anterior que se vendió en el mostrador. */
+    private long cantidadPresencial;
+    private BigDecimal montoPresencial;
 }

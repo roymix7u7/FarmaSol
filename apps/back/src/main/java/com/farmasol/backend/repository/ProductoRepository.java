@@ -1,8 +1,12 @@
 package com.farmasol.backend.repository;
 
 import com.farmasol.backend.model.Producto;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
@@ -30,4 +34,16 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     List<Producto> findAll();
 
     boolean existsByCategoria_IdAndActivoTrue(Long idCategoria);
+
+    /**
+     * Productos bloqueados para escritura hasta que termine la transacción.
+     *
+     * <p>Lo usa la venta presencial: sin bloqueo, dos cajeros vendiendo la última
+     * unidad a la vez leerían ambos stock 1 y lo dejarían en -1. El orden por id
+     * hace que dos ventas simultáneas pidan los bloqueos en el mismo orden, para
+     * que nunca se queden esperándose la una a la otra (deadlock).
+     */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("SELECT p FROM Producto p WHERE p.id IN :ids ORDER BY p.id")
+    List<Producto> findAllByIdInParaVenta(@Param("ids") Collection<Long> ids);
 }

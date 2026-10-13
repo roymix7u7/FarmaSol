@@ -183,8 +183,10 @@ export function ReportesGerente() {
                     <thead>
                       <tr>
                         <th>Día</th>
-                        <th className="num">Pedidos</th>
-                        <th className="num">Monto</th>
+                        <th className="num">Operaciones</th>
+                        <th className="num">Tienda</th>
+                        <th className="num">Web</th>
+                        <th className="num">Total</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -192,6 +194,8 @@ export function ReportesGerente() {
                         <tr key={d.dia}>
                           <td>{fechaLarga(d.dia)}</td>
                           <td className="num">{d.cantidadPedidos}</td>
+                          <td className="num">{soles(d.montoPresencial)}</td>
+                          <td className="num">{soles(d.monto - d.montoPresencial)}</td>
                           <td className="num">{soles(d.monto)}</td>
                         </tr>
                       ))}
@@ -224,8 +228,15 @@ export function ReportesGerente() {
                               <div className="gr-tip" role="tooltip">
                                 {fechaLarga(d.dia)}
                                 <br />
-                                <b>{soles(d.monto)}</b> · {d.cantidadPedidos}{' '}
-                                {d.cantidadPedidos === 1 ? 'pedido' : 'pedidos'}
+                              <b>{soles(d.monto)}</b> · {d.cantidadPedidos}{' '}
+                                {d.cantidadPedidos === 1 ? 'operación' : 'operaciones'}
+                                {d.montoPresencial > 0 && (
+                                  <>
+                                    <br />
+                                    Tienda {soles(d.montoPresencial)} · Web{' '}
+                                    {soles(d.monto - d.montoPresencial)}
+                                  </>
+                                )}
                               </div>
                             )}
                             {d.dia === pico.dia && d.monto > 0 && dias <= 15 && (

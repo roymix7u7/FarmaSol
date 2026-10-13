@@ -122,6 +122,7 @@ export function DashboardGerente({ onIrA }: Props) {
   const serie = serieCompleta(ventas, 7);
   const ventasSemana = serie.reduce((t, d) => t + d.monto, 0);
   const pedidosSemana = serie.reduce((t, d) => t + d.cantidadPedidos, 0);
+  const tiendaSemana = serie.reduce((t, d) => t + d.montoPresencial, 0);
   const maxMonto = Math.max(...serie.map((d) => d.monto), 0);
   const tope = topeLimpio(maxMonto);
   const pico = serie.reduce((a, b) => (b.monto > a.monto ? b : a), serie[0]);
@@ -147,7 +148,9 @@ export function DashboardGerente({ onIrA }: Props) {
           <span className="kpi-label">Ventas de los últimos 7 días</span>
           <span className="kpi-valor">{soles(ventasSemana)}</span>
           <span className="kpi-nota">
-            {pedidosSemana} {pedidosSemana === 1 ? 'pedido' : 'pedidos'} en la semana
+            {pedidosSemana} {pedidosSemana === 1 ? 'operación' : 'operaciones'}
+            {ventasSemana > 0 &&
+              ` · tienda ${soles(tiendaSemana)}, web ${soles(ventasSemana - tiendaSemana)}`}
           </span>
         </div>
 
@@ -218,7 +221,14 @@ export function DashboardGerente({ onIrA }: Props) {
                               {fechaLarga(d.dia)}
                               <br />
                               <b>{soles(d.monto)}</b> · {d.cantidadPedidos}{' '}
-                              {d.cantidadPedidos === 1 ? 'pedido' : 'pedidos'}
+                              {d.cantidadPedidos === 1 ? 'operación' : 'operaciones'}
+                              {d.montoPresencial > 0 && (
+                                <>
+                                  <br />
+                                  Tienda {soles(d.montoPresencial)} · Web{' '}
+                                  {soles(d.monto - d.montoPresencial)}
+                                </>
+                              )}
                             </div>
                           )}
                           {esPico && <span className="gr-valor-pico">{soles(d.monto)}</span>}
