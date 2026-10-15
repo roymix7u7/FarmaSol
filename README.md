@@ -9,22 +9,106 @@ Farmacia online: catálogo, carrito, pedidos y panel de gestión.
 
 ## Cómo arrancarlo
 
-**Solo necesitas [Docker Desktop](https://www.docker.com/products/docker-desktop/).**
-No instales Java, Node, Maven ni MySQL: va todo dentro de Docker.
+Hay dos formas. **Elige una**: las dos dejan el proyecto igual.
 
-```bash
+| | Sin Docker | Con Docker |
+|---|---|---|
+| Instalas | Java 17+, Node 22 y MySQL 8 | Solo Docker Desktop |
+| Te conviene si | ya tienes MySQL (Workbench) y usas IntelliJ o VS Code | no quieres instalar nada más |
+
+En las dos, la base de datos se crea y se llena sola con productos y usuarios de
+prueba. No hay que importar ningún `.sql`.
+
+### Opción A: sin Docker
+
+**Necesitas tener instalado:**
+
+- **Java 17 o más nuevo** (el JDK). Compruébalo con `java -version`
+- **Node.js 22**. Compruébalo con `node -v`
+- **MySQL 8** corriendo: el de siempre, el que usas con Workbench
+
+Maven no hace falta: el proyecto trae `mvnw`, que lo descarga solo.
+
+**1. Clona el repo**
+
+```
+git clone https://github.com/roymix7u7/FarmaSol.git
+cd FarmaSol
+```
+
+**2. Pon la contraseña de tu MySQL** (solo la primera vez)
+
+En la carpeta `apps/back` hay un archivo `.env.example`. Cópialo **en esa misma
+carpeta** con el nombre `.env`, ábrelo y pon tu contraseña:
+
+```
+DB_PASSWORD=la_contraseña_de_tu_mysql
+```
+
+Ese archivo no se sube al repo: tu contraseña se queda en tu computadora.
+
+**3. Arranca el backend** (en una terminal)
+
+```
+cd apps/back
+.\mvnw spring-boot:run
+```
+
+Está listo cuando aparece `Started FarmaSolBackApplication`. La primera vez tarda
+unos minutos porque descarga Maven y las dependencias.
+
+> El comando depende de tu terminal: `.\mvnw` en PowerShell, `mvnw` en CMD, y
+> `./mvnw` en Git Bash, Mac o Linux.
+>
+> ¿Prefieres el IDE? En IntelliJ, abre la carpeta `apps/back` y ejecuta
+> `FarmaSolBackApplication` con el botón verde. Lee el mismo `.env`.
+
+**4. Arranca el frontend** (en otra terminal, sin cerrar la del backend)
+
+```
+cd apps/front
+npm install
+npm run dev
+```
+
+`npm install` solo hace falta la primera vez, o cuando cambie `package.json`.
+
+Abre **http://localhost:5173**.
+
+**Si algo falla**
+
+| Mensaje | Qué hacer |
+|---|---|
+| `Access denied for user 'root'` | La contraseña de `apps/back/.env` no es la de tu MySQL. Revísala. |
+| `Communications link failure` | Tu MySQL está apagado. Enciéndelo desde Servicios de Windows (suele llamarse `MySQL80`). |
+| `'java' no se reconoce` o `release version 17 not supported` | Instala el JDK 17 o 21. |
+| `Port 8080 was already in use` | Ya tienes el backend abierto en otra terminal, o Docker corriendo. Ciérralo. |
+| `npm run dev` falla con un error de versión | Actualiza Node a la versión 22. |
+
+### Opción B: con Docker
+
+Solo necesitas [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+abierto. No hace falta Java, Node ni MySQL, ni configurar contraseñas.
+
+```
 git clone https://github.com/roymix7u7/FarmaSol.git
 cd FarmaSol
 docker compose up
 ```
 
-Cuando deje de mostrar texto nuevo, abre **http://localhost:5173**.
+Cuando deje de mostrar texto nuevo, abre **http://localhost:5173**. La primera vez
+tarda 3-5 minutos porque descarga todo; las siguientes, segundos.
 
-> La primera vez tarda 3-5 minutos porque descarga e instala todo.
-> Las siguientes arranca en segundos.
+| Para | Comando |
+|---|---|
+| Arrancar | `docker compose up` |
+| Parar | `docker compose down` |
+| Ver qué hace el backend | `docker compose logs -f back` |
+| Aplicar cambios del backend o de dependencias | `docker compose up -d --build` |
+| Empezar con la base vacía | `docker compose down -v` y luego `docker compose up` |
 
-La base de datos se crea y se llena sola con productos y usuarios de prueba.
-No tienes que configurar nada ni importar ningún `.sql`.
+Si dice `port is already allocated`, tienes algo usando el 5173, 8080 o 3307:
+ciérralo, o apaga tu MySQL local desde Servicios de Windows.
 
 ### Entra con estos usuarios
 
@@ -34,22 +118,8 @@ No tienes que configurar nada ni importar ningún `.sql`.
 | Gerente | `/gerente/login` | `gerente` | `Gerente123!` |
 | Empleado | `/gerente/login` | `empleado` | `Empleado123!` |
 
-### Si algo falla
-
-| Problema | Solución |
-|---|---|
-| `port is already allocated` | Tienes algo usando el 5173, 8080 o 3307. Ciérralo, o para tu MySQL local desde Servicios de Windows. |
-| La página no carga | Espera un poco más: el backend tarda en arrancar. Mira `docker compose logs -f back`. |
-| Cambiaste dependencias y no se reflejan | `docker compose up --build` |
-| Quieres empezar de cero | `docker compose down -v` y luego `docker compose up` |
-
-### Comandos del día a día
-
-```bash
-docker compose up          # arrancar
-docker compose down        # parar
-docker compose logs -f back   # ver qué hace el backend
-```
+El cliente entra con correo y el personal con usuario (sin `@`). El empleado entra
+directo al **Punto de Venta**.
 
 ---
 
@@ -78,10 +148,14 @@ Por ejemplo: `feat/filtro-por-categoria` o `fix/error-al-pagar`.
 **Antes de abrir el PR**, asegúrate de que compila. Es lo mismo que revisa
 GitHub automáticamente, y si falla no te deja mergear:
 
-```bash
-cd apps/front && npm run build
-cd apps/back  && ./mvnw test
 ```
+cd apps/front
+npm run build
+cd ../back
+.\mvnw test
+```
+
+(En Git Bash, Mac o Linux, la última línea es `./mvnw test`.)
 
 ---
 
