@@ -1,6 +1,8 @@
 package com.farmasol.backend.service.impl;
 
 import com.farmasol.backend.dto.auth.AuthResponse;
+import com.farmasol.backend.dto.auth.CambiarPasswordPersonalRequest;
+import com.farmasol.backend.dto.auth.CambiarPasswordRequest;
 import com.farmasol.backend.dto.auth.ClienteRegisterRequest;
 import com.farmasol.backend.dto.auth.LoginRequest;
 import com.farmasol.backend.dto.auth.UsuarioAutenticadoDTO;
@@ -82,10 +84,6 @@ public class AuthServiceImpl implements AuthService {
 
     /**
      * Login del portal con bloqueo temporal tras {@value #MAX_INTENTOS} intentos fallidos.
-     *
-     * <p>noRollbackFor es imprescindible: el método lanza la excepción después de
-     * sumar el intento fallido, y sin esto la transacción se revertiría y el
-     * contador nunca pasaría de cero, así que la cuenta jamás se bloquearía.
      */
     @Override
     @Transactional(noRollbackFor = {BadCredentialsException.class, CuentaBloqueadaException.class})
@@ -95,8 +93,6 @@ public class AuthServiceImpl implements AuthService {
 
         LocalDateTime ahora = LocalDateTime.now();
         if (personal.getBloqueadoHasta() != null && ahora.isBefore(personal.getBloqueadoHasta())) {
-            // Ni siquiera se comprueba la contraseña: con la cuenta bloqueada, acertar
-            // no debe servir para saber que se acertó.
             throw new CuentaBloqueadaException(mensajeBloqueo(ahora, personal.getBloqueadoHasta()));
         }
 
@@ -148,6 +144,31 @@ public class AuthServiceImpl implements AuthService {
                 .nombre(u.getNombre())
                 .build();
     }
+
+    // --- AQUI ESTA EL METODO CORREGIDO ---
+    @Override
+    @Transactional
+    public void cambiarPassword(CambiarPasswordRequest request) {
+        // Usamos findByUsuarioAndActivoTrue porque en el registro el usuario es igual al correo
+        Cliente cliente = clienteRepository.findByUsuarioAndActivoTrue(request.getCorreo())
+                .orElseThrow(() -> new BusinessException("El correo no está registrado."));
+
+        cliente.setPasswordHash(passwordEncoder.encode(request.getNuevaPassword()));
+        clienteRepository.save(cliente);
+    }
+    @Override
+    @Transactional
+    public void cambiarPasswordPersonal(CambiarPasswordPersonalRequest request) {
+        // Buscamos al empleado/gerente solo por su usuario
+        Personal personal = personalRepository.findByUsuarioAndActivoTrue(request.getUsuario())
+                .orElseThrow(() -> new BusinessException("El usuario no existe o está inactivo."));
+
+        // Encriptamos la nueva contraseña y la guardamos
+        personal.setPasswordHash(passwordEncoder.encode(request.getNuevaPassword()));
+        personalRepository.save(personal);
+    }
+
+
 
     private static String mensajeBloqueo(LocalDateTime ahora, LocalDateTime hasta) {
         long minutos = Math.max(1, Duration.between(ahora, hasta).toMinutes() + 1);
