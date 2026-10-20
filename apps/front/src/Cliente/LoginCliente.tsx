@@ -109,7 +109,9 @@ export function LoginCliente() {
             ¿No tienes cuenta? <Link to="/registro">Regístrate</Link>
           </p>
           <p style={{ marginTop: 6 }}>
-            <Link to="/gerente/login">¿Eres personal de FarmaSol?</Link>
+            <Link to="/recuperar-password">
+              ¿Te has olvidado la contraseña?
+            </Link>
           </p>
         </div>
       </div>

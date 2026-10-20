@@ -84,16 +84,24 @@ public class DataSeeder implements CommandLineRunner {
         if (categoriaRepository.count() > 0) {
             return;
         }
+        // Categorías principales
         Categoria farmacia = cat("Farmacia", "farmacia", null, 1);
         Categoria adultoMayor = cat("Adulto Mayor", "adulto-mayor", null, 2);
         Categoria mamaBebe = cat("Mamá y Bebé", "mama-y-bebe", null, 3);
         Categoria dermo = cat("Dermocosmético", "dermocosmetico", null, 4);
+        
+        // NUEVA CATEGORÍA
+        Categoria galenicos = cat("Galenicos", "galenicos", null, 5);
+        Categoria antibioticos = cat("Antibióticos", "antibioticos", farmacia, 4);
+        Categoria antimicoticos = cat("Antimicóticos", "antimicoticos", farmacia, 5);
 
+        // Subcategorías de Farmacia
         Categoria analgesicos = cat("Analgésicos", "analgesicos", farmacia, 1);
         Categoria antigripales = cat("Antigripales", "antigripales", farmacia, 2);
         Categoria nutricion = cat("Nutrición", "nutricion", farmacia, 3);
         Categoria panales = cat("Pañales", "panales", mamaBebe, 1);
 
+        // Productos
         Producto p1 = prod("Paracetamol 500 mg", analgesicos, "8.90", 120, "Genfar", "Caja 20 tab", false);
         Producto p2 = prod("Ibuprofeno 400 mg", analgesicos, "12.50", 80, "Bayer", "Caja 10 tab", false);
         Producto p3 = prod("Pregabalina 75 mg", analgesicos, "22.00", 30, "Farmindustria", "Caja 30 caps", true);
@@ -102,6 +110,9 @@ public class DataSeeder implements CommandLineRunner {
         prod("Protector Solar FPS 50", dermo, "45.00", 40, "Alma Secret", "Frasco 60 ml", false);
         prod("Pañales Talla M x40", panales, "38.90", 50, "Huggies", "Paquete x40", false);
         prod("Multivitamínico Adulto Mayor", adultoMayor, "29.90", 35, "Centrum", "Frasco 30 tab", false);
+        
+        // NUEVO PRODUCTO DE PRUEBA
+        prod("Crema Magistral de Calamina", galenicos, "25.00", 20, "FarmaSol", "Frasco 50g", false);
 
         promocionRepository.save(Promocion.builder()
                 .titulo("Campaña Invierno - 15% dto.")

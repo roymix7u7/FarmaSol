@@ -1,6 +1,8 @@
 package com.farmasol.backend.controller;
 
 import com.farmasol.backend.dto.auth.AuthResponse;
+import com.farmasol.backend.dto.auth.CambiarPasswordPersonalRequest;
+import com.farmasol.backend.dto.auth.CambiarPasswordRequest;
 import com.farmasol.backend.dto.auth.ClienteRegisterRequest;
 import com.farmasol.backend.dto.auth.LoginRequest;
 import com.farmasol.backend.dto.auth.UsuarioAutenticadoDTO;
@@ -10,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -36,5 +40,17 @@ public class AuthController {
     @GetMapping("/me")
     public ResponseEntity<UsuarioAutenticadoDTO> me() {
         return ResponseEntity.ok(authService.getMe());
+    }
+
+    @PostMapping("/cambiar-password")
+    public ResponseEntity<?> cambiarPassword(@Valid @RequestBody CambiarPasswordRequest request) {
+        authService.cambiarPassword(request);
+        return ResponseEntity.ok(java.util.Map.of("mensaje", "Contraseña actualizada correctamente"));
+    }
+
+    @PostMapping("/cambiar-password-personal")
+    public ResponseEntity<?> cambiarPasswordPersonal(@Valid @RequestBody CambiarPasswordPersonalRequest request) {
+        authService.cambiarPasswordPersonal(request);
+        return ResponseEntity.ok(java.util.Map.of("mensaje", "Contraseña actualizada correctamente"));
     }
 }

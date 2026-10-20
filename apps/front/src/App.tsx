@@ -16,6 +16,7 @@ import { EntregaCliente } from './Cliente/EntregaCliente';
 import { PagoCliente } from './Cliente/PagoCliente';
 import { PerfilCliente } from './Cliente/PerfilCliente';
 import { PedidosCliente } from './Cliente/PedidosCliente';
+import { RecuperarPasswordCliente } from './Cliente/RecuperarPasswordCliente';
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
           <Route path="/registro" element={<RegistroCliente />} />
           <Route path="/gerente/login" element={<LoginGerente />} />
           <Route path="/gerente/forgot-password" element={<ForgotPasswordGerente />} />
+          <Route path="/recuperar-password" element={<RecuperarPasswordCliente />} />
 
           {/* Checkout (con su propio header) */}
           <Route path="/carrito" element={<RequireAuth><CarritoCliente /></RequireAuth>} />

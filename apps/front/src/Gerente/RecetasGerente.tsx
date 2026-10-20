@@ -23,6 +23,9 @@ export function RecetasGerente() {
   const [motivo, setMotivo] = useState('');
   const [errorMotivo, setErrorMotivo] = useState('');
 
+  // Estado para la ventana de ayuda
+  const [ayudaAbierta, setAyudaAbierta] = useState(false);
+
   function cargar() {
     setCargando(true);
     setError('');
@@ -94,9 +97,21 @@ export function RecetasGerente() {
       </div>
 
       <div className="table-toolbar">
-        <span style={{ fontSize: 13, color: 'var(--texto-suave)' }}>
-          Revisa que la receta sea legible, esté vigente y corresponda al medicamento pedido.
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: 13, color: 'var(--texto-suave)' }}>
+            Revisa que la receta sea legible, esté vigente y corresponda al medicamento pedido.
+          </span>
+          {/* BOTÓN DE AYUDA */}
+          <button
+            type="button"
+            className="btn-chico"
+            onClick={() => setAyudaAbierta(true)}
+            title="Guía para validar recetas"
+            style={{ padding: '2px 8px', display: 'flex', alignItems: 'center', gap: '5px', border: '1px solid #3b82f6', color: '#3b82f6' }}
+          >
+            <i className="fa-solid fa-circle-question"></i> Guía
+          </button>
+        </div>
         <button className="btn-chico" onClick={cargar} disabled={cargando}>
           Actualizar
         </button>
@@ -170,6 +185,7 @@ export function RecetasGerente() {
         )}
       </div>
 
+      {/* MODAL DE RECHAZO */}
       {rechazando && (
         <div className="modal-overlay" onClick={() => !procesando && setRechazando(null)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
@@ -226,6 +242,55 @@ export function RecetasGerente() {
                 style={{ background: '#b91c1c' }}
               >
                 {procesando !== null ? 'Guardando…' : 'Rechazar receta'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE GUÍA DE VALIDACIÓN */}
+      {ayudaAbierta && (
+        <div className="modal-overlay" onClick={() => setAyudaAbierta(false)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()} style={{ maxWidth: 550 }}>
+            <div className="modal-header">
+              <div>
+                <h2 className="modal-title">
+                  <i className="fa-solid fa-file-medical" style={{ color: '#3b82f6', marginRight: 8 }}></i>
+                  Guía para validar recetas
+                </h2>
+                <p className="modal-subtitle">Puntos clave antes de aprobar o rechazar un documento</p>
+              </div>
+              <button className="modal-close" onClick={() => setAyudaAbierta(false)}>
+                ×
+              </button>
+            </div>
+
+            <div style={{ fontSize: 13.5, color: 'var(--texto)', lineHeight: 1.6 }}>
+              <ul style={{ paddingLeft: 20, margin: '0 0 20px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <li>
+                  <strong>Legibilidad:</strong> La receta debe ser clara. No debe tener tachaduras, borrones ni enmendaduras.
+                </li>
+                <li>
+                  <strong>Vigencia:</strong> Verifica que la fecha de emisión no supere los <strong>30 días</strong> de antigüedad. Recetas vencidas no son válidas.
+                </li>
+                <li>
+                  <strong>Prescriptor (Médico):</strong> Debe incluir obligatoriamente el nombre del médico, su firma, su sello y su número de <strong>CMP</strong> (Colegiatura).
+                </li>
+                <li>
+                  <strong>Paciente:</strong> El nombre en la receta debe coincidir con el cliente de la tienda o con la persona autorizada a recoger el pedido.
+                </li>
+                <li>
+                  <strong>Medicamento:</strong> El nombre, la concentración (ej. 500mg) y la cantidad prescrita deben coincidir exactamente con lo que se está vendiendo.
+                </li>
+                <li>
+                  <strong>Posología:</strong> La indicación médica debe ser explícita (ej. "1 tableta cada 8 horas"). Dosis vagas como "según sea necesario" no son válidas para medicamentos controlados.
+                </li>
+              </ul>
+            </div>
+
+            <div className="modal-actions">
+              <button className="btn-save" onClick={() => setAyudaAbierta(false)}>
+                Entendido
               </button>
             </div>
           </div>
