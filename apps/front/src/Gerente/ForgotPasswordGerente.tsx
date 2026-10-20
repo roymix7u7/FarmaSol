@@ -14,7 +14,6 @@ export function ForgotPasswordGerente() {
   const [passwordTocado, setPasswordTocado] = useState(false);
 
   const errorPassword = validarPassword(nuevaPassword);
-  const passwordValido = !errorPassword;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();

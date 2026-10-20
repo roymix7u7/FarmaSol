@@ -1,13 +1,11 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { api, mensajeDeError } from '../api/client';
 import { validarPassword, requisitosPassword } from '../shared/validaciones';
 import fondo from '../assets/logoffondo.jpg';
 import '../Css/Auth.css';
 
 export function RecuperarPasswordCliente() {
-  const navigate = useNavigate();
-
   // Eliminamos el estado "usuario", solo dejamos "correo"
   const [correo, setCorreo] = useState('');
   const [nuevaPassword, setNuevaPassword] = useState('');
