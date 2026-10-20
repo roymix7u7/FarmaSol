@@ -1,8 +1,26 @@
 import axios from 'axios';
-import type { ApiError } from '../types';
+import type { ApiError, TipoUsuario } from '../types';
 
-export const TOKEN_KEY = 'farmasol_token';
-export const USER_KEY = 'farmasol_user';
+/**
+ * El panel y la tienda guardan su sesión por separado. Antes compartían una sola:
+ * si en otra pestaña alguien entraba como cliente, el panel seguía mostrando al
+ * gerente pero mandaba el token del cliente, y el servidor respondía "No tienes
+ * permiso" en todas las secciones.
+ */
+export const SESIONES: Record<TipoUsuario, { token: string; user: string }> = {
+  PERSONAL: { token: 'farmasol_personal_token', user: 'farmasol_personal_user' },
+  CLIENTE: { token: 'farmasol_cliente_token', user: 'farmasol_cliente_user' },
+};
+
+/** Qué sesión usa la página actual: todo lo que está bajo /gerente es del panel. */
+export function areaDe(pathname: string): TipoUsuario {
+  return pathname.startsWith('/gerente') ? 'PERSONAL' : 'CLIENTE';
+}
+
+export function borrarSesion(tipo: TipoUsuario) {
+  localStorage.removeItem(SESIONES[tipo].token);
+  localStorage.removeItem(SESIONES[tipo].user);
+}
 
 export const api = axios.create({
   baseURL: '/api',
@@ -10,7 +28,7 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem(TOKEN_KEY);
+  const token = localStorage.getItem(SESIONES[areaDe(window.location.pathname)].token);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -24,14 +42,14 @@ api.interceptors.response.use(
     const status: number | undefined = error.response?.status;
     // Sesión expirada / inválida en un endpoint protegido: cerrar sesión.
     if (status === 401 && !url.includes('/auth/')) {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
       const path = window.location.pathname;
-      // /gerente/login es la ruta real del personal: con la antigua (/admin/login,
-      // que no existe) un gerente con la sesion vencida terminaba en el login de
-      // clientes, donde sus credenciales no funcionan.
-      if (!path.startsWith('/login') && !path.startsWith('/gerente/login')) {
-        window.location.href = '/login';
+      const area = areaDe(path);
+      borrarSesion(area);
+      // Cada uno vuelve a su propio login: el personal no puede entrar por el de
+      // clientes, ni al revés.
+      const login = area === 'PERSONAL' ? '/gerente/login' : '/login';
+      if (!path.startsWith(login)) {
+        window.location.href = login;
       }
     }
     return Promise.reject(error);

@@ -1,27 +1,55 @@
-import { createContext, useContext, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 import { authApi } from '../api/auth';
 import type { RegistroClientePayload } from '../api/auth';
-import { TOKEN_KEY, USER_KEY } from '../api/client';
-import type { AuthResponse, AuthUser } from '../types';
+import { SESIONES, areaDe, borrarSesion } from '../api/client';
+import type { AuthResponse, AuthUser, TipoUsuario } from '../types';
 
 interface AuthContextValue {
+  /** El usuario de la sesión de esta página: el personal en /gerente, el cliente en la tienda. */
   user: AuthUser | null;
   loginCliente: (usuario: string, password: string) => Promise<AuthUser>;
   loginPersonal: (usuario: string, password: string) => Promise<AuthUser>;
   registrarCliente: (payload: RegistroClientePayload) => Promise<AuthUser>;
+  /** Cierra solo la sesión de esta página; la otra sigue abierta. */
   logout: () => void;
 }
 
+type Sesiones = Record<TipoUsuario, AuthUser | null>;
+
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function leerUsuarioGuardado(): AuthUser | null {
+function leerUsuarioGuardado(tipo: TipoUsuario): AuthUser | null {
   try {
-    const raw = localStorage.getItem(USER_KEY);
+    const raw = localStorage.getItem(SESIONES[tipo].user);
     return raw ? (JSON.parse(raw) as AuthUser) : null;
   } catch {
     return null;
   }
+}
+
+function leerSesiones(): Sesiones {
+  return { PERSONAL: leerUsuarioGuardado('PERSONAL'), CLIENTE: leerUsuarioGuardado('CLIENTE') };
+}
+
+/** Pasa la sesión de la versión anterior (una sola para todos) a su lugar nuevo. */
+function migrarSesionAntigua() {
+  try {
+    const token = localStorage.getItem('farmasol_token');
+    const raw = localStorage.getItem('farmasol_user');
+    if (token && raw) {
+      const tipo = (JSON.parse(raw) as AuthUser).tipo;
+      if (SESIONES[tipo]) {
+        localStorage.setItem(SESIONES[tipo].token, token);
+        localStorage.setItem(SESIONES[tipo].user, raw);
+      }
+    }
+  } catch {
+    // Si estaba corrupta, simplemente se pide iniciar sesión otra vez.
+  }
+  localStorage.removeItem('farmasol_token');
+  localStorage.removeItem('farmasol_user');
 }
 
 function guardarSesion(res: AuthResponse): AuthUser {
@@ -31,37 +59,43 @@ function guardarSesion(res: AuthResponse): AuthUser {
     uid: res.uid,
     nombres: res.nombres,
   };
-  localStorage.setItem(TOKEN_KEY, res.token);
-  localStorage.setItem(USER_KEY, JSON.stringify(user));
+  localStorage.setItem(SESIONES[res.tipo].token, res.token);
+  localStorage.setItem(SESIONES[res.tipo].user, JSON.stringify(user));
   return user;
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(leerUsuarioGuardado);
+  const [sesiones, setSesiones] = useState<Sesiones>(() => {
+    migrarSesionAntigua();
+    return leerSesiones();
+  });
+  const area = areaDe(useLocation().pathname);
+
+  // Si en otra pestaña se inicia o cierra sesión, esta se entera al instante, en
+  // vez de seguir mostrando a un usuario cuyo token ya no es el guardado.
+  useEffect(() => {
+    const alCambiar = () => setSesiones(leerSesiones());
+    window.addEventListener('storage', alCambiar);
+    return () => window.removeEventListener('storage', alCambiar);
+  }, []);
 
   const value = useMemo<AuthContextValue>(() => {
-    async function loginCliente(usuario: string, password: string) {
-      const u = guardarSesion(await authApi.loginCliente(usuario, password));
-      setUser(u);
+    function entrar(res: AuthResponse) {
+      const u = guardarSesion(res);
+      setSesiones((s) => ({ ...s, [u.tipo]: u }));
       return u;
     }
-    async function loginPersonal(usuario: string, password: string) {
-      const u = guardarSesion(await authApi.loginPersonal(usuario, password));
-      setUser(u);
-      return u;
-    }
-    async function registrarCliente(payload: RegistroClientePayload) {
-      const u = guardarSesion(await authApi.registrarCliente(payload));
-      setUser(u);
-      return u;
-    }
-    function logout() {
-      localStorage.removeItem(TOKEN_KEY);
-      localStorage.removeItem(USER_KEY);
-      setUser(null);
-    }
-    return { user, loginCliente, loginPersonal, registrarCliente, logout };
-  }, [user]);
+    return {
+      user: sesiones[area],
+      loginCliente: async (usuario, password) => entrar(await authApi.loginCliente(usuario, password)),
+      loginPersonal: async (usuario, password) => entrar(await authApi.loginPersonal(usuario, password)),
+      registrarCliente: async (payload) => entrar(await authApi.registrarCliente(payload)),
+      logout() {
+        borrarSesion(area);
+        setSesiones((s) => ({ ...s, [area]: null }));
+      },
+    };
+  }, [sesiones, area]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
