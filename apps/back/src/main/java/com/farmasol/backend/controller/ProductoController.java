@@ -56,7 +56,10 @@ public class ProductoController {
 
 
 
-        @PostMapping("/upload-imagen")
+    // Subir y borrar imágenes cambia el catálogo: solo el gerente, igual que crear
+    // o editar productos. Sin esto, cualquier cliente con sesión podía hacerlo.
+    @PostMapping("/upload-imagen")
+    @PreAuthorize("hasRole('GERENTE')")
     public ResponseEntity<?> subirImagen(@RequestParam("archivo") org.springframework.web.multipart.MultipartFile archivo) {
         if (archivo.isEmpty()) {
             return ResponseEntity.badRequest().body(java.util.Map.of("error", "El archivo está vacío"));
@@ -118,7 +121,8 @@ public class ProductoController {
 
     
 
-        @GetMapping("/imagenes-disponibles")
+    @GetMapping("/imagenes-disponibles")
+    @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<?> listarImagenesDisponibles() {
         java.nio.file.Path dir = java.nio.file.Paths.get("../front/public/img/productos");
         java.util.List<String> urls = new java.util.ArrayList<>();
@@ -136,10 +140,17 @@ public class ProductoController {
         return ResponseEntity.ok(urls);
     }
 
-        @DeleteMapping("/imagenes/{nombreArchivo}")
+    @DeleteMapping("/imagenes/{nombreArchivo}")
+    @PreAuthorize("hasRole('GERENTE')")
     public ResponseEntity<?> eliminarImagen(@PathVariable String nombreArchivo) {
         try {
-            java.nio.file.Path ruta = java.nio.file.Paths.get("../front/public/img/productos").resolve(nombreArchivo);
+            java.nio.file.Path dir = java.nio.file.Paths.get("../front/public/img/productos").toAbsolutePath().normalize();
+            java.nio.file.Path ruta = dir.resolve(nombreArchivo).normalize();
+            // Un nombre como "..%2F..%2Fpom.xml" saldría de la carpeta y borraría
+            // cualquier archivo del servidor: solo se acepta lo que esté dentro.
+            if (!ruta.getParent().equals(dir)) {
+                return ResponseEntity.badRequest().body(java.util.Map.of("error", "Nombre de archivo inválido"));
+            }
             
             // Verificamos que el archivo exista antes de borrarlo
             if (java.nio.file.Files.exists(ruta)) {
