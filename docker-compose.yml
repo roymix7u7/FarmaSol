@@ -58,6 +58,11 @@ services:
       - "8080:8080"
     volumes:
       - farmasol-uploads:/app/uploads
+      # El back corre en /app y guarda las imágenes de productos en
+      # ../front/public/img/productos (o sea /front/...). Sin esta carpeta
+      # compartida se quedaban dentro del contenedor: el selector salía vacío y
+      # la tienda mostraba la imagen rota.
+      - ./apps/front/public/img/productos:/front/public/img/productos
 
   front:
     build:

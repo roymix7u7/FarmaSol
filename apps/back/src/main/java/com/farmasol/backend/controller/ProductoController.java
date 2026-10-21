@@ -29,12 +29,7 @@ public class ProductoController {
         java.util.List<String> urls = new java.util.ArrayList<>();
         try {
             java.nio.file.Path dir = getImagenesPath();
-            
-            // ESTO ES EL CHIVATO: Nos dirá en la consola dónde está buscando
-            System.out.println("==================================================");
-            System.out.println("BUSCANDO IMÁGENES EN LA RUTA: " + dir.toString());
-            System.out.println("¿LA CARPETA EXISTE?: " + java.nio.file.Files.exists(dir));
-            System.out.println("==================================================");
+
 
             if (java.nio.file.Files.exists(dir)) {
                 try (var stream = java.nio.file.Files.list(dir)) {
