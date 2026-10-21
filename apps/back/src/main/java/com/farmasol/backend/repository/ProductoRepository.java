@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface ProductoRepository extends JpaRepository<Producto, Long> {
 
@@ -34,6 +35,11 @@ public interface ProductoRepository extends JpaRepository<Producto, Long> {
     List<Producto> findAll();
 
     boolean existsByCategoria_IdAndActivoTrue(Long idCategoria);
+
+    // Para el catálogo de ejemplo (DataSeeder): saber qué productos ya están.
+    boolean existsByNombre(String nombre);
+
+    Optional<Producto> findFirstByNombre(String nombre);
 
     /**
      * Productos bloqueados para escritura hasta que termine la transacción.
