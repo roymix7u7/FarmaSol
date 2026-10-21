@@ -1,7 +1,6 @@
 package com.farmasol.backend.service.impl;
 
 import com.farmasol.backend.dto.auth.AuthResponse;
-import com.farmasol.backend.dto.auth.CambiarPasswordPersonalRequest;
 import com.farmasol.backend.dto.auth.CambiarPasswordRequest;
 import com.farmasol.backend.dto.auth.ClienteRegisterRequest;
 import com.farmasol.backend.dto.auth.LoginRequest;
@@ -156,18 +155,6 @@ public class AuthServiceImpl implements AuthService {
         cliente.setPasswordHash(passwordEncoder.encode(request.getNuevaPassword()));
         clienteRepository.save(cliente);
     }
-    @Override
-    @Transactional
-    public void cambiarPasswordPersonal(CambiarPasswordPersonalRequest request) {
-        // Buscamos al empleado/gerente solo por su usuario
-        Personal personal = personalRepository.findByUsuarioAndActivoTrue(request.getUsuario())
-                .orElseThrow(() -> new BusinessException("El usuario no existe o está inactivo."));
-
-        // Encriptamos la nueva contraseña y la guardamos
-        personal.setPasswordHash(passwordEncoder.encode(request.getNuevaPassword()));
-        personalRepository.save(personal);
-    }
-
 
 
     private static String mensajeBloqueo(LocalDateTime ahora, LocalDateTime hasta) {

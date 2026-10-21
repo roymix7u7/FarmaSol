@@ -8,7 +8,6 @@ import { LoginCliente } from './Cliente/LoginCliente';
 import { RegistroCliente } from './Cliente/RegistroCliente';
 import { LoginGerente } from './Gerente/LoginGerente';
 import { HomeGerente } from './Gerente/HomeGerente';
-import { ForgotPasswordGerente } from './Gerente/ForgotPasswordGerente';
 import { BuscarCliente } from './Cliente/BuscarCliente';
 import { CategoriaCliente } from './Cliente/CategoriaCliente';
 import { CarritoCliente } from './Cliente/CarritoCliente';
@@ -27,7 +26,6 @@ function App() {
           <Route path="/login" element={<LoginCliente />} />
           <Route path="/registro" element={<RegistroCliente />} />
           <Route path="/gerente/login" element={<LoginGerente />} />
-          <Route path="/gerente/forgot-password" element={<ForgotPasswordGerente />} />
           <Route path="/recuperar-password" element={<RecuperarPasswordCliente />} />
 
           {/* Checkout (con su propio header) */}
