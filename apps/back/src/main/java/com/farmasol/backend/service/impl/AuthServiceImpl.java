@@ -148,9 +148,12 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public void cambiarPassword(CambiarPasswordRequest request) {
-        // Usamos findByUsuarioAndActivoTrue porque en el registro el usuario es igual al correo
-        Cliente cliente = clienteRepository.findByUsuarioAndActivoTrue(request.getCorreo())
-                .orElseThrow(() -> new BusinessException("El correo no está registrado."));
+        // Usamos findByUsuarioAndActivoTrue porque en el registro el usuario es igual al correo.
+        // El mismo mensaje si no existe o si el documento no coincide: así no sirve
+        // para averiguar qué correos están registrados.
+        Cliente cliente = clienteRepository.findByUsuarioAndActivoTrue(request.getCorreo().trim())
+                .filter(c -> c.getDni() != null && c.getDni().equalsIgnoreCase(request.getDni().trim()))
+                .orElseThrow(() -> new BusinessException("El correo y el documento no coinciden con ninguna cuenta."));
 
         cliente.setPasswordHash(passwordEncoder.encode(request.getNuevaPassword()));
         clienteRepository.save(cliente);

@@ -6,8 +6,10 @@ import fondo from '../assets/logoffondo.jpg';
 import '../Css/Auth.css';
 
 export function RecuperarPasswordCliente() {
-  // Eliminamos el estado "usuario", solo dejamos "correo"
+  // Además del correo se pide el documento del registro: con solo el correo,
+  // cualquiera podía cambiarle la contraseña a otra persona.
   const [correo, setCorreo] = useState('');
+  const [dni, setDni] = useState('');
   const [nuevaPassword, setNuevaPassword] = useState('');
   
   const [error, setError] = useState('');
@@ -29,6 +31,11 @@ export function RecuperarPasswordCliente() {
       return;
     }
 
+    if (!dni.trim()) {
+      setError('Ingresa el número de documento con el que te registraste.');
+      return;
+    }
+
     if (errorPassword) {
       setError('La contraseña no cumple con los requisitos de seguridad.');
       return;
@@ -36,15 +43,15 @@ export function RecuperarPasswordCliente() {
 
     setCargando(true);
     try {
-      // Enviamos solo el correo y la nueva contraseña
-      await api.post('/auth/cambiar-password', { 
-        correo: correo.trim(), 
+      await api.post('/auth/cambiar-password', {
+        correo: correo.trim(),
+        dni: dni.trim(),
         nuevaPassword: nuevaPassword
       });
       
       setExito(true);
     } catch (err) {
-      setError(mensajeDeError(err, 'El correo no está registrado.'));
+      setError(mensajeDeError(err, 'No se pudo cambiar la contraseña.'));
     } finally {
       setCargando(false);
     }
@@ -56,7 +63,7 @@ export function RecuperarPasswordCliente() {
         <h1 className="auth-brand">FarmaSOL</h1>
         <h2 className="auth-title">Recuperar Contraseña</h2>
         <p style={{ textAlign: 'center', fontSize: 13, color: 'var(--texto-suave)', marginBottom: 20 }}>
-          Ingresa tu correo y elige una nueva contraseña.
+          Ingresa tu correo, tu número de documento y elige una nueva contraseña.
         </p>
 
         <form onSubmit={onSubmit} noValidate>
@@ -86,6 +93,19 @@ export function RecuperarPasswordCliente() {
                   placeholder="correo@ejemplo.com"
                   value={correo}
                   onChange={(e) => setCorreo(e.target.value)}
+                />
+              </div>
+
+              <div className="auth-field">
+                <label htmlFor="dni">N.° de documento (DNI o carné de extranjería):</label>
+                <input
+                  id="dni"
+                  type="text"
+                  inputMode="numeric"
+                  placeholder="El mismo con el que te registraste"
+                  maxLength={12}
+                  value={dni}
+                  onChange={(e) => setDni(e.target.value)}
                 />
               </div>
 
