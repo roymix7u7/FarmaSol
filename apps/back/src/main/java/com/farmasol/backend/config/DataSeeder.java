@@ -14,13 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Set;
 
-/**
- * Carga datos iniciales la primera vez que arranca contra una base vacía.
- * Cada bloque es idempotente (solo corre si su tabla está vacía).
- */
 @Component
 @Profile("!test")
 @RequiredArgsConstructor
@@ -45,9 +40,7 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedSedes() {
-        if (sedeRepository.count() > 0) {
-            return;
-        }
+        if (sedeRepository.count() > 0) return;
         sedeRepository.save(Sede.builder().nombre("Sede Surco")
                 .direccion("Av. Camino del Inca 1240").distrito("Santiago de Surco")
                 .horario("Lun a Sáb 8:00 - 22:00").activo(true).build());
@@ -61,9 +54,7 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedPersonal() {
-        if (personalRepository.count() > 0) {
-            return;
-        }
+        if (personalRepository.count() > 0) return;
         Personal gerente = personalRepository.save(Personal.builder()
                 .nombres("Gerente").apellidos("General")
                 .usuario("gerente").correo("gerente@farmasol.pe")
@@ -81,39 +72,72 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private void seedCatalogo() {
-        if (categoriaRepository.count() > 0) {
-            return;
-        }
-        // Categorías principales
-        Categoria farmacia = cat("Farmacia", "farmacia", null, 1);
-        Categoria adultoMayor = cat("Adulto Mayor", "adulto-mayor", null, 2);
-        Categoria mamaBebe = cat("Mamá y Bebé", "mama-y-bebe", null, 3);
-        Categoria dermo = cat("Dermocosmético", "dermocosmetico", null, 4);
-        
-        // NUEVA CATEGORÍA
-        Categoria galenicos = cat("Galenicos", "galenicos", null, 5);
-        Categoria antibioticos = cat("Antibióticos", "antibioticos", farmacia, 4);
-        Categoria antimicoticos = cat("Antimicóticos", "antimicoticos", farmacia, 5);
+        if (categoriaRepository.count() > 0) return;
 
-        // Subcategorías de Farmacia
+        // CATEGORÍAS PRINCIPALES
+        Categoria farmacia = cat("Farmacia", "farmacia", null, 1);
+        Categoria galenicos = cat("Galénicos", "galenicos", null, 2);
+        Categoria dermo = cat("Dermocosmético", "dermocosmetico", null, 3);
+        Categoria mamaBebe = cat("Mamá y Bebé", "mama-y-bebe", null, 4);
+        Categoria adultoMayor = cat("Adulto Mayor", "adulto-mayor", null, 5);
+
+        // SUBCATEGORÍAS
         Categoria analgesicos = cat("Analgésicos", "analgesicos", farmacia, 1);
         Categoria antigripales = cat("Antigripales", "antigripales", farmacia, 2);
-        Categoria nutricion = cat("Nutrición", "nutricion", farmacia, 3);
+        Categoria antibioticos = cat("Antibióticos", "antibioticos", farmacia, 3);
+        Categoria nutricion = cat("Nutrición", "nutricion", farmacia, 4);
+        Categoria botiquin = cat("Botiquín", "botiquin", farmacia, 5);
         Categoria panales = cat("Pañales", "panales", mamaBebe, 1);
 
-        // Productos
-        Producto p1 = prod("Paracetamol 500 mg", analgesicos, "8.90", 120, "Genfar", "Caja 20 tab", false);
-        Producto p2 = prod("Ibuprofeno 400 mg", analgesicos, "12.50", 80, "Bayer", "Caja 10 tab", false);
-        Producto p3 = prod("Pregabalina 75 mg", analgesicos, "22.00", 30, "Farmindustria", "Caja 30 caps", true);
-        Producto p4 = prod("Antigripal Forte", antigripales, "15.00", 60, "Panadol", "Caja 12 sob", false);
-        Producto p5 = prod("Diutin Fibercel Fibra Soluble", nutricion, "67.98", 25, "Diutin", "Lata 336 g", false);
-        prod("Protector Solar FPS 50", dermo, "45.00", 40, "Alma Secret", "Frasco 60 ml", false);
-        prod("Pañales Talla M x40", panales, "38.90", 50, "Huggies", "Paquete x40", false);
-        prod("Multivitamínico Adulto Mayor", adultoMayor, "29.90", 35, "Centrum", "Frasco 30 tab", false);
-        
-        // NUEVO PRODUCTO DE PRUEBA
-        prod("Crema Magistral de Calamina", galenicos, "25.00", 20, "FarmaSol", "Frasco 50g", false);
+        // ================= PRODUCTOS (Con las nuevas URLs sin espacios) =================
 
+        // --- Analgésicos ---
+        prod("Paracetamol 500mg Vía Oral Tabletas x100", analgesicos, "12.50", 120, "Genfar", "Caja 100 tab", false, "/img/productos/Paracetamol-500mg-Via-Oral-Tabletas-100.webp");
+        prod("Actron Ibuprofeno 400mg Cápsula x1", analgesicos, "8.90", 45, "Bayer", "Cápsulas x1", false, "/img/productos/actron-ibuprofeno-400mg-Capsulax1.webp");
+        prod("Pregabalina 75mg Cápsulas x30", analgesicos, "22.00", 30, "Farmindustria", "Caja 30 caps", true, "/img/productos/Pregabalina-75mg-Capsulas-30.webp");
+
+        // --- Antigripales ---
+        prod("Panadol Antigripal NF Sobres x2", antigripales, "18.00", 50, "GSK", "Sobres x2 tab", false, "/img/productos/Panadol-Antigripal-NF-52SOB-2TABS.jpg");
+
+        // --- Antibióticos (AGOTADO) ---
+        prod("Amoxicilina Polvo para Solución Oral 60mL", antibioticos, "15.00", 0, "Genfar", "Polvo susp. 60ml", true, "/img/productos/AMOXICILINA-Polvo-para-solucion-oral-60mL.jpg");
+
+        // --- Nutrición ---
+        prod("Diutin Fibercel Fibra Soluble 336g", nutricion, "67.98", 25, "Diutin", "Lata 336 g", false, "/img/productos/diutin-FIBERCEL-FIBRA-SOLUBLE-336g.webp");
+        prod("Centrum Adulto Comprimidos x30", nutricion, "45.00", 15, "Centrum", "Frasco 30 tab", false, "/img/productos/Centrum-ADULTO-Comprimidosx30-400mg.jpg");
+
+        // --- Botiquín ---
+        prod("Alcohol 70° Gel 100mL", botiquin, "5.50", 60, "FarmaSol", "Frasco 100ml", false, "/img/productos/Alcohol-70°-GEL-100mL.png");
+        prod("Alcohol Medicinal 70° Solución Uso Externo 1000mL", botiquin, "12.00", 25, "FarmaSol", "Frasco 1000ml", false, "/img/productos/Alcohol-Medicinal-70°-Solucion-Uso-Externo-1000mL.png");
+        prod("Alcohol Medicinal 70° Spray 1000mL", botiquin, "15.00", 20, "FarmaSol", "Spray 1000ml", false, "/img/productos/Alcohol-Medicinal-70°-Solucion-Uso-Externo-1000mL-Spray.png");
+        prod("Alcohol Yodado Solución Uso Externo 120mL", botiquin, "7.50", 45, "FarmaSol", "Frasco 120ml", false, "/img/productos/Alcohol-Yodado-Solucion-Uso-Externo-120mL.png");
+        prod("Agua Oxigenada 500mL", botiquin, "4.50", 35, "FarmaSol", "Frasco 500ml", false, "/img/productos/Agua_Oxigenada_500mL.png");
+        prod("Glicerina Solución 1000mL", botiquin, "14.00", 15, "FarmaSol", "Frasco 1000ml", false, "/img/productos/Glicerina-Solucion-1000mL.png");
+        prod("Tintura de Árnica Solución Uso Externo 1000mL", botiquin, "20.00", 10, "FarmaSol", "Frasco 1000ml", false, "/img/productos/Tintura-de-Arnica-Solucion-Uso-Externo-1000mL.png");
+        prod("Tintura de Yodo Solución Uso Externo 1000mL", botiquin, "18.00", 12, "FarmaSol", "Frasco 1000ml", false, "/img/productos/Tintura-de-Yodo-Solucion-Uso-Externo-1000mL.png");
+        prod("Vinagre Bully Solución Uso Externo 240mL", botiquin, "9.00", 30, "Bully", "Frasco 240ml", false, "/img/productos/Vinagre-Bully-Solucion-Uso-Externo-240mL.png");
+        prod("Mascarilla Quirúrgica x50", botiquin, "15.00", 100, "FarmaSol", "Caja x50", false, "/img/productos/img0355.webp"); 
+
+        // --- Galénicos (POR AGOTAR) ---
+        prod("Nitrato de Plata 12 Lápices Uso Tópico", galenicos, "25.00", 12, "FarmaSol", "Lápices x12", true, "/img/productos/NITRATO-DE-PLATA_12-LAPICES-USO-TOPICO.png");
+        prod("Violeta de Genciana 1% Solución Tópico Uso Externo 30mL", galenicos, "8.00", 20, "FarmaSol", "Frasco 30ml", false, "/img/productos/Violeta-de-Genciana-1-Solucion-Topico-Uso-Externo-30mL.webp");
+        prod("Timol Compuesto 75mL", galenicos, "15.00", 5, "FarmaSol", "Frasco 75ml", false, "/img/productos/Timol-Compuesto-75mL.png");
+        prod("Elixir Estomacal Solución Oral 30mL", galenicos, "12.00", 30, "FarmaSol", "Frasco 30ml", false, "/img/productos/Elixir-Estomacal-Solucion-Oral-30mL.png");
+        prod("Agua de Azahar Solución Oral 500mL", galenicos, "10.00", 15, "FarmaSol", "Frasco 500ml", false, "/img/productos/Agua-de-Azahar-Solucion-Oral-500mL.png");
+        prod("Bicarbonato de Sodio Polvo para Solución Oral 1000g", galenicos, "18.00", 40, "FarmaSol", "Bolsa 1000g", false, "/img/productos/Bicarbonato-de-Sodio-Polvo-para-Solucion-Oral-1000g.png");
+
+        // --- Dermocosmético ---
+        prod("Alma Secret Crema Solar Facial SPF50 50mL", dermo, "45.00", 40, "Alma Secret", "Frasco 60 ml", false, "/img/productos/alma-secret-crema-solar-facial-spf50-50-ml.jpg");
+        prod("Skin Repair Crema 75mL", dermo, "38.00", 22, "FarmaSol", "Frasco 75ml", false, "/img/productos/SKIN-REPAIR-CREMA-75mL.webp");
+        prod("Aceite de Almendras 30ml", dermo, "16.00", 18, "FarmaSol", "Frasco 30ml", false, "/img/productos/Aceite-de-Almendras-30ml.png"); // Asumiendo este nombre por la captura
+        prod("Aceite de Ricino 30ml", dermo, "18.00", 15, "FarmaSol", "Frasco 30 ml", false, "/img/productos/aceite-de-ricino-30-ml-1024x1024.png");
+        prod("Aceite Rosado 30ml", dermo, "18.00", 15, "FarmaSol", "Frasco 30 ml", false, "/img/productos/aceite-rosado-30-ml-1024x1024.png");
+
+        // --- Mamá y Bebé ---
+        prod("Huggies Natural Care M2 Pañales x60", panales, "38.90", 50, "Huggies", "Paquete x60", false, "/img/productos/HUGGIES-Natural-Care-M2-Pañalesx60.jpg");
+
+
+        // PROMOCIÓN DE PRUEBA
         promocionRepository.save(Promocion.builder()
                 .titulo("Campaña Invierno - 15% dto.")
                 .descripcion("Descuento en productos seleccionados de Farmacia")
@@ -124,17 +148,13 @@ public class DataSeeder implements CommandLineRunner {
                 .imagenBanner("/banners/invierno.jpg")
                 .mostrarEnCarrusel(true).orden(1).activo(true)
                 .categorias(Set.of(farmacia))
-                .productos(Set.of(p5))
                 .build());
 
-        log.info("Seed: catálogo creado ({} categorías, {} productos, 1 promoción)",
-                categoriaRepository.count(), productoRepository.count());
+        log.info("Seed: catálogo creado con {} productos y URLs corregidas.", productoRepository.count());
     }
 
     private void seedClienteDemo() {
-        if (clienteRepository.count() > 0) {
-            return;
-        }
+        if (clienteRepository.count() > 0) return;
         clienteRepository.save(Cliente.builder()
                 .nombres("Cliente").apellidos("Demo")
                 .usuario("cliente@demo.pe").correo("cliente@demo.pe")
@@ -152,7 +172,7 @@ public class DataSeeder implements CommandLineRunner {
     }
 
     private Producto prod(String nombre, Categoria categoria, String precio, int stock,
-                          String marca, String presentacion, boolean requiereReceta) {
+                          String marca, String presentacion, boolean requiereReceta, String imagenUrl) {
         return productoRepository.save(Producto.builder()
                 .nombre(nombre)
                 .descripcion(nombre + " - " + presentacion)
@@ -162,6 +182,7 @@ public class DataSeeder implements CommandLineRunner {
                 .marca(marca)
                 .presentacion(presentacion)
                 .requiereReceta(requiereReceta)
+                .imagenUrl(imagenUrl)
                 .activo(true)
                 .build());
     }

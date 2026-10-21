@@ -1,7 +1,6 @@
 package com.farmasol.backend.controller;
 
 import com.farmasol.backend.dto.auth.AuthResponse;
-import com.farmasol.backend.dto.auth.CambiarPasswordPersonalRequest;
 import com.farmasol.backend.dto.auth.CambiarPasswordRequest;
 import com.farmasol.backend.dto.auth.ClienteRegisterRequest;
 import com.farmasol.backend.dto.auth.LoginRequest;
@@ -48,9 +47,4 @@ public class AuthController {
         return ResponseEntity.ok(java.util.Map.of("mensaje", "Contraseña actualizada correctamente"));
     }
 
-    @PostMapping("/cambiar-password-personal")
-    public ResponseEntity<?> cambiarPasswordPersonal(@Valid @RequestBody CambiarPasswordPersonalRequest request) {
-        authService.cambiarPasswordPersonal(request);
-        return ResponseEntity.ok(java.util.Map.of("mensaje", "Contraseña actualizada correctamente"));
-    }
 }

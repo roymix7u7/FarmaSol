@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { mensajeDeError } from '../api/client';
 import '../Css/LoginPortal.css';
@@ -96,10 +96,6 @@ export function LoginGerente() {
             {cargando ? 'Ingresando…' : 'Acceder al Sistema'}
           </button>
         </form>
-
-        <Link to="/gerente/forgot-password" className="trabajador-forgot">
-          ¿Olvidaste tu contraseña?
-        </Link>
 
         <div className="trabajador-footer">
           <i className="fa-solid fa-lock"></i>
