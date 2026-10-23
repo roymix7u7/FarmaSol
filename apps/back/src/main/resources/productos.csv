@@ -1,0 +1,78 @@
+nombre;categoria;precio;stock;marca;presentacion;requiereReceta;imagenUrl;registroSanitario
+Paracetamol 500mg Vía Oral Tabletas x100;analgesicos;12.50;120;Genfar;Caja tab x 100;false;/img/productos/Paracetamol-500mg-Via-Oral-Tabletas-100.webp;RS-12345
+Actron Ibuprofeno 400mg Cápsula x1;analgesicos;8.90;45;Bayer;caps x 1;false;/img/productos/actron-ibuprofeno-400mg-Capsulax1.webp;RS-12346
+Pregabalina 75mg Cápsulas x30;analgesicos;22.00;30;Farmindustria;Caja caps x 30;true;/img/productos/Pregabalina-75mg-Capsulas-30.webp;RS-12347
+Panadol Antigripal NF Sobres x2;antigripales;18.00;50;GSK;Sobres tab x 2;false;/img/productos/Panadol-Antigripal-NF-52SOB-2TABS.jpg;RS-12348
+Amoxicilina Polvo para Solución Oral 60mL;antibioticos;15.00;0;Genfar;Frasco 60mL;true;/img/productos/AMOXICILINA-Polvo-para-solucion-oral-60mL.jpg;RS-12349
+Diutin Fibercel Fibra Soluble 336g;galenicos;67.98;25;Diutin;Lata 336g;false;/img/productos/diutin-FIBERCEL-FIBRA-SOLUBLE-336g.webp;RS-12350
+Centrum Adulto Comprimidos x30;galenicos;45.00;15;Centrum;Frasco 30 x tab;false;/img/productos/Centrum-ADULTO-Comprimidosx30-400mg.jpg;RS-12351
+Alcohol 70 Gel 100mL;galenicos;5.50;60;Alkofarma;Frasco 100mL;false;/img/productos/Alcohol-70-GEL-100mL.png;RS-12352
+Alcohol Medicinal 70 Solución Uso Externo 1000mL;galenicos;12.00;25;Alkofarma;Frasco 1000mL;false;/img/productos/Alcohol-Medicinal-70-Solucion-Uso-Externo-1000mL.png;RS-12353
+Alcohol Medicinal 70 Spray 1000mL;galenicos;15.00;20;Alkofarma;Spray 1000mL;false;/img/productos/Alcohol-Medicinal-70-Solucion-Uso-Externo-1000mL-Spray.png;RS-12354
+Alcohol Yodado Solucion Uso Externo 120mL;galenicos;7.50;45;Alkofarma;Frasco 120mL;false;/img/productos/Alcohol-Yodado-Solucion-Uso-Externo-120mL.png;RS-12355
+Agua Oxigenada 500mL;galenicos;4.50;35;Alkofarma;Frasco 500mL;false;/img/productos/Agua_Oxigenada_500mL.png;RS-12356
+Glicerina Solucion 1000mL;galenicos;14.00;15;Alkofarma;Frasco 1000mL;false;/img/productos/Glicerina-Solucion-1000mL.png;RS-12357
+Tintura de Árnica Solucion Uso Externo 1000mL;galenicos;20.00;10;Alkofarma;Frasco 1000mL;false;/img/productos/Tintura-de-Arnica-Solucion-Uso-Externo-1000mL.png;RS-12358
+Tintura de Yodo Solucion Uso Externo 1000mL;galenicos;18.00;12;Alkofarma;Frasco 1000mL;false;/img/productos/Tintura-de-Yodo-Solucion-Uso-Externo-1000mL.png;RS-12359
+Vinagre Bully Solucion Uso Externo 240mL;galenicos;9.00;30;Alkofarma;Frasco 240mL;false;/img/productos/Vinagre-Bully-Solucion-Uso-Externo-240mL.png;RS-12360
+Mascarilla Quirurgica x50;galenicos;15.00;100;Alkofarma;Caja x 50;false;/img/productos/img0355.webp;RS-12361
+Nitrato de Plata 12 Lapices Uso Topico;galenicos;25.00;12;Alkofarma;Lápices x 12;true;/img/productos/NITRATO-DE-PLATA_12-LAPICES-USO-TOPICO.png;RS-12362
+Violeta de Genciana 1% Solucion Topico Uso Externo 30mL;galenicos;8.00;20;Alkofarma;Frasco 30mL;false;/img/productos/Violeta-de-Genciana-1-Solucion-Topico-Uso-Externo-30mL.webp;RS-12363
+Timol Compuesto 75mL;galenicos;15.00;5;Alkofarma;Frasco 75mL;false;/img/productos/Timol-Compuesto-75mL.png;RS-12364
+Elixir Estomacal Solucion Oral 30mL;galenicos;12.00;30;Alkofarma;Frasco 30mL;false;/img/productos/Elixir-Estomacal-Solucion-Oral-30mL.png;RS-12365
+Agua de Azahar Solucion Oral 500mL;galenicos;10.00;15;Alkofarma;Frasco 500mL;false;/img/productos/Agua-de-Azahar-Solucion-Oral-500mL.png;RS-12366
+Bicarbonato de Sodio Polvo para Solucion Oral 1000g;galenicos;18.00;40;Alkofarma;Bolsa 1000g;false;/img/productos/Bicarbonato-de-Sodio-Polvo-para-Solucion-Oral-1000g.png;RS-12367
+Alma Secret Crema Solar Facial SPF50 50mL;dermocosmetico;45.00;40;Alkofarma;Frasco 60mL;false;/img/productos/alma-secret-crema-solar-facial-spf50-50-ml.jpg;RS-12368
+Skin Repair Crema 75ml;dermocosmetico;38.00;22;Alkofarma;Frasco 75mL;false;/img/productos/SKIN-REPAIR-CREMA-75mL.webp;RS-12369
+Aceite de Almendras 30mL;dermocosmetico;16.00;18;Alkofarma;Frasco 30mL;false;/img/productos/Aceite-de-Almendras-30ml.png;RS-12370
+Aceite de Ricino 30mL;dermocosmetico;18.00;15;Alkofarma;Frasco 30mL;false;/img/productos/aceite-de-ricino-30-ml-1024x1024.png;RS-12371
+Aceite Rosado 30mL;dermocosmetico;18.00;15;Alkofarma;Frasco 30mL;false;/img/productos/aceite-rosado-30-ml-1024x1024.png;RS-12372
+Huggies Natural Care M2 Panales x 60;mama-y-bebe;38.90;50;Huggies;Paquete x 60;false;/img/productos/HUGGIES-Natural-Care-M2-Pañalesx60.jpg;RS-12373
+Agua de Kananga;cosmeticos;16.50;10;Alkofarma;Frasco 90mL;false;/img/productos/Agua-de-Kananga-90mL.png;NSOC-51642-21-PE
+Aceite de Coco 30mL;cosmeticos;13.50;5;Alkofarma;Frasco 30mL;false;/img/productos/Aceite-de-Coco-30mL.png;NSOC-622242-23PE
+Dispensador de Jabon 1000mL;cosmeticos;10.00;20;Alkofarma;Contenedor 1000mL;false;/img/productos/Dispensador-de-Jabon-1000mL.png;S/R
+Jabon Liquido Antibacterial Citricos 120mL;cosmeticos;5.00;20;Alkofarma;Frasco 120mL;false;/img/productos/Jabon-Liquido-Citrico-120mL.jpg;NSOC-51493-21PE
+Jabon Liquido Antibacterial Citricos 360mL;cosmeticos;8.00;18;Alkofarma;Frasco 360mL;false;/img/productos/Jabon-Liquido-Citrico-360mL.jpg;NSOC-51493-21PE
+Jabon Liquido Antibacterial Citricos 1000mL;cosmeticos;16.00;10;Alkofarma;Contenedor 1000mL;false;/img/productos/Jabon-Liquido-Citrico-1000mL.jpg;NSOC-51493-21PE
+Jabon Liquido Antibacterial Citricos 4000mL;cosmeticos;45.00;5;Alkofarma;Contenedor 4000mL;false;/img/productos/Jabon-Liquido-Citrico-4000mL.png;NSOC-51493-21PE
+Jabon Liquido Antibacterial Frambuesa 120ml;cosmeticos;5.00;10;Alkofarma;Frasco 120mL;false;/img/productos/Jabon-Liquido-Frambuesa-120mL.png;NSOC-51493-21PE
+Jabon Liquido Antibacterial Frambuesa 360ml;cosmeticos;8.00;10;Alkofarma;Frasco 120mL;false;/img/productos/Jabon-Liquido-Frambuesa-360mL.png;NSOC-51493-21PE
+Jabon Liquido Antibacterial Frambuesa 1000ml;cosmeticos;16.00;5;Alkofarma;Contenedor 1000mL;false;/img/productos/Jabon-Liquido-Frambuesa-1000mL.jpg;NSOC-51493-21PE
+Jabon Liquido Antibacterial Frambuesa 4000ml;cosmeticos;45.00;5;Alkofarma;Contenedor 4000mL;false;/img/productos/Jabon-Liquido-Frambuesa-4000mL.jpg;NSOC-51493-21PE
+Jabon Liquido Antibacterial Manzana 120mL;cosmeticos;5.00;11;Alkofarma;Frasco 120mL;false;/img/productos/Jabon-Liquido-Manzana-120mL.png;NSOC-51493-21PE
+Jabon Liquido Antibacterial Manzana 360mL;cosmeticos;8.00;11;Alkofarma;Frasco 120mL;false;/img/productos/Jabon-Liquido-Manzana-360mL.jpg;NSOC-51493-21PE
+Jabon Liquido Antibacterial Manzana 1000mL;cosmeticos;16.00;6;Alkofarma;Contenedor 1000mL;false;/img/productos/Jabon-Liquido-Manzana-1000mL.png;NSOC-51493-21PE
+Jabon Liquido Antibacterial Manzana 4000mL;cosmeticos;45.00;6;Alkofarma;Contenedor 4000mL;false;/img/productos/Jabon-Liquido-Manzana-4000mL.jpg;NSOC-51493-21PE
+Jabon Liquido Antibacterial Marino 360mL;cosmeticos;8.00;11;Alkofarma;Frasco 120mL;false;/img/productos/Jabon-Liquido-Marino-360mL.jpg;NSOC-51493-21PE
+Jabon Liquido Antibacterial Marino 1000mL;cosmeticos;16.00;6;Alkofarma;Contenedor 1000mL;false;/img/productos/Jabon-Liquido-Marino-1000mL.png;NSOC-51493-21PE
+Jabon Liquido Antibacterial Marino 4000mL;cosmeticos;45.00;6;Alkofarma;Contenedor 4000mL;false;/img/productos/Jabon-Liquido-Marino-4000mL.jpg;NSOC-51493-21PE
+Jabon Liquido Antibacterial Transparente 360mL;cosmeticos;8.00;12;Alkofarma;Frasco 120mL;false;/img/productos/Jabon-Liquido-Transparente-360mL.jpg;NSOC-51493-21PE
+Jabon Liquido Antibacterial Transparente 1000mL;cosmeticos;16.00;7;Alkofarma;Contenedor 1000mL;false;/img/productos/Jabon-Liquido-Transparente-1000mL.png;NSOC-51493-21PE
+Jabon Liquido Antibacterial Transparente 4000mL;cosmeticos;45.00;7;Alkofarma;Contenedor 4000mL;false;/img/productos/Jabon-Liquido-Transparente-4000mL.jpg;NSOC-51493-21PE
+Quita Esmalte Fresa 30mL;cosmeticos;7.00;5;Alkofarma;Frasco 30mL;false;/img/productos/Quita-Esmalte-Fresa-30mL.png;NSOC-53553-22PE
+Quita Esmalte Fresa 70mL;cosmeticos;12.00;6;Alkofarma;Frasco 70mL;false;/img/productos/Quita-Esmalte-Fresa-70mL.png;NSOC-53553-22PE
+Quita Esmalte Limon 30mL;cosmeticos;7.00;6;Alkofarma;Frasco 30mL;false;/img/productos/Quita-Esmalte-Limon-30mL.png;NSOC-53553-22PE
+Quita Esmalte Limon 70mL;cosmeticos;12.00;7;Alkofarma;Frasco 70mL;false;/img/productos/Quita-Esmalte-Limon-70mL.png;NSOC-53553-22PE
+Cloruro de Sodio 100mL;farmacia;4.00;8;Alkofarma;Frasco 100mL;false;/img/productos/Cloruro-de-Sodio-100mL.png;EE-13689
+Cloruro de Sodio 1000mL;farmacia;40.00;12;Alkofarma;Frasco 1000mL;false;/img/productos/Cloruro-de-Sodio-1000mL.png;EE-13689
+Alkoyodo Espuma 120mL;farmacia;4.00;4;Alkofarma;Frasco 120mL;false;/img/productos/Alkoyodo-Espuma-120mL.png;EN-02769
+Alkoyodo Espuma 1000mL;farmacia;35.00;8;Alkofarma;Frasco 1000mL;false;/img/productos/Alkoyodo-Espuma-1000mL.png;EN-02769
+Alkoyodo Solucion 120mL;farmacia;4.00;5;Alkofarma;Frasco 120mL;false;/img/productos/Alkoyodo-Solucion-120mL.png;EN-02768
+Alkoyodo Solucion 1000mL;farmacia;35.00;9;Alkofarma;Frasco 1000mL;false;/img/productos/Alkoyodo-Solucion-1000mL.png;EN-02768
+Ice Spray 200mL;dispositivos-medicos;12.00;5;Alkofarma;Frasco 200mL;false;/img/productos/Ice-Spray-200mL.png;DM-31908
+Ultra - Gel (Gel de ultrasonido) Celeste 250mL;dispositivos-medicos;8.00;5;Alkofarma;Frasco 250mL;false;/img/productos/Ultra-Gel-Celeste-250mL.jpg;DM-0636N
+Ultra - Gel (Gel de ultrasonido) Celeste 3785mL;dispositivos-medicos;50.00;10;Alkofarma;Contenedor 3785mL;false;/img/productos/Ultra-Gel-Celeste-3785mL.jpg;DM-0636N
+Ultra - Gel (Gel de ultrasonido) Incoloro 250mL;dispositivos-medicos;8.00;5;Alkofarma;Frasco 250mL;false;/img/productos/Ultra-Gel-Incoloro-250mL.jpg;DM-0636N
+Ultra - Gel (Gel de ultrasonido) Incoloro 3785mL;dispositivos-medicos;50.00;10;Alkofarma;Contenedor 3785mL;false;/img/productos/Ultra-Gel-Incoloro-3785mL.jpg;DM-0636N
+Vendas Elasticas 2x5 Yardas;dispositivos-medicos;5.00;20;Alkofarma;Unidades x 5;false;/img/productos/Vendas-Elasticas-2x5.jpg;DM-0644N
+Pa�al Desechable para Adulto Classic 7a8;adulto-mayor;20.00;15;Kimberly-Clark;Unidades x 16;false;/img/productos/P-D-A-C-7a8-16unid.jpg;S/R
+Pa�al Desechable para Adulto Protect 7a8;adulto-mayor;20.00;18;Kimberly-Clark;Unidades x 16;false;/img/productos/P-D-A-P-7a8-16unid.jpg;S/R
+Aposito Desechable 5a8;mama-y-bebe;30.00;20;Kimberly-Clark;Unidades x 40;false;/img/productos/AD-5a8-40unid.jpg;S/R
+Protector de Cama 8a8;mama-y-bebe;15.00;35;Kimberly-Clark;Unidades x 8;false;/img/productos/P-C-8a8-8unid.jpg;S/R
+Ropa Interior Desechable Proteccion y Comodidad Plus 8a8;mama-y-bebe;15.00;25;Kimberly-Clark;Unidades x 8;false;/img/productos/R-I-D-P-C-P-8a8-8unid.jpg;S/R
+Ropa Interior Desechable Proteccion y Comodidad Plus 7a8;mama-y-bebe;13.50;35;Kimberly-Clark;Unidades x 8;false;/img/productos/R-I-D-P-C-P-7a8-8unid.jpg;S/R
+Ropa Interior Desechable Proteccion y Comodidad Plus 9a10;mama-y-bebe;16.50;20;Kimberly-Clark;Unidades x 8;false;/img/productos/R-I-D-P-C-9a10-8unid.jpg;S/R
+Protector Diario Medio para Incontinencia Urinaria 2a8;mama-y-bebe;10.50;15;Kimberly-Clark;Unidades x 24;false;/img/productos/P-D-M-I-U-2a8-24unid.jpg;S/R
+Toalla Ultra Especial para Incontinencia Urinaria 4a8;mama-y-bebe;16.50;25;Kimberly-Clark;Unidades x 8;false;/img/productos/T-U-E-I-U-4a8-8unid.jpg;S/R
+Toalla Nocturna para Incontinencia Urinaria 6a8;mama-y-bebe;8.50;35;Kimberly-Clark;Unidades x 8;false;/img/productos/T-N-I-U-6a8-8unid.jpg;S/R
+Toalla Larga para Incontinencia Urinaria 3a8;mama-y-bebe;17.00;30;Kimberly-Clark;Unidades x16;false;/img/productos/T-L-I-U-3a8-16unid.jpg;S/R
