@@ -103,7 +103,7 @@ export function HomeCliente() {
         <div
           style={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+            gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
             gap: 16,
           }}
         >

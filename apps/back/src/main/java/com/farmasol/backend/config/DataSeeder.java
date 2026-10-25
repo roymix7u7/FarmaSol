@@ -99,23 +99,32 @@ public class DataSeeder implements CommandLineRunner {
         Categoria antibioticos = cat("Antibióticos", "antibioticos", farmacia, 3);
         Categoria nutricion = cat("Nutrición", "nutricion", farmacia, 4);
         Categoria botiquin = cat("Botiquín", "botiquin", farmacia, 5);
-        Categoria panales = cat("Pañales", "panales", mamaBebe, 1);
+        Categoria panales = cat("Pañales", "panales", mamaBebe, 1); 
+        Categoria antiinflamatorio = cat("Antiinflamatorios", "antiinflamatorio", farmacia, 6);
+        Categoria antimicotico = cat("Antimicóticos", "antimicotico", farmacia, 7);
+        Categoria betabloqueantes = cat("Betabloqueantes", "betabloqueantes", farmacia, 8);
+        Categoria antifungico = cat("Antifúngicos", "antifungico", farmacia, 9);
 
         // 2. MAPA DE CATEGORÍAS (Conecta el Excel con Java)
         Map<String, Categoria> mapaCategorias = new HashMap<>();
         mapaCategorias.put("farmacia", farmacia);
         mapaCategorias.put("galenicos", galenicos);
         mapaCategorias.put("dermocosmetico", dermo);
+        mapaCategorias.put("mama-y-bebe", mamaBebe);
+        mapaCategorias.put("adulto-mayor", adultoMayor);
+        mapaCategorias.put("cosmeticos", cosmeticos);
+        mapaCategorias.put("dispositivos-medicos", dispositivos);
+        
         mapaCategorias.put("analgesicos", analgesicos);
         mapaCategorias.put("antigripales", antigripales);
         mapaCategorias.put("antibioticos", antibioticos);
         mapaCategorias.put("nutricion", nutricion);
         mapaCategorias.put("botiquin", botiquin);
         mapaCategorias.put("panales", panales);
-        mapaCategorias.put("cosmeticos", cosmeticos);
-        mapaCategorias.put("dispositivos-medicos", dispositivos);
-        mapaCategorias.put("mama-y-bebe", mamaBebe);
-        mapaCategorias.put("adulto-mayor", adultoMayor); 
+        mapaCategorias.put("antiinflamatorio", antiinflamatorio);
+        mapaCategorias.put("antimicotico", antimicotico);
+        mapaCategorias.put("betabloqueantes", betabloqueantes);
+        mapaCategorias.put("antifungico", antifungico);
 
         // 3. LEEMOS EL CSV
         try (BufferedReader br = new BufferedReader(new InputStreamReader(
