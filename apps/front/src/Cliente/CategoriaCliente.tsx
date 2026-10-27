@@ -123,13 +123,7 @@ export function CategoriaCliente() {
               Ningún producto cumple con los filtros que elegiste.
             </p>
           ) : (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-                gap: 16,
-              }}
-            >
+            <div className="grilla-productos columnas-4">
               {filtrados.map((prod) => (
                 <TarjetaProducto key={prod.id} producto={prod} onAgregar={agregar} />
               ))}

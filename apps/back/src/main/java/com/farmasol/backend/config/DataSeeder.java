@@ -2,7 +2,6 @@ package com.farmasol.backend.config;
 
 import com.farmasol.backend.model.*;
 import com.farmasol.backend.model.enums.RolPersonal;
-import com.farmasol.backend.model.enums.TipoDescuento;
 import com.farmasol.backend.repository.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,10 +15,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 @Component
 @Profile("!test")
@@ -76,111 +73,142 @@ public class DataSeeder implements CommandLineRunner {
         log.info("Seed: personal creado (gerente / empleado)");
     }
 
-    
-
-
-        private void seedCatalogo() {
-        if (categoriaRepository.count() > 0) return;
-
-        // 1. CREAMOS LAS CATEGORÍAS (Agregando las de tu Excel)
+    /**
+     * Catálogo de ejemplo, leído de {@code resources/productos.csv}.
+     *
+     * <p>Corre en cada arranque y solo agrega lo que falta: así una base creada
+     * antes (con el catálogo viejo) también recibe los productos nuevos sin tener
+     * que borrarla. Los productos del catálogo anterior se reconocen por su foto y
+     * se ponen al día conservando su id y su stock, para no romper pedidos ni
+     * ventas. Lo que alguien editó a mano no se toca.
+     */
+    private void seedCatalogo() {
+        // 1. CATEGORÍAS (se crean solo si no existen)
         Categoria farmacia = cat("Farmacia", "farmacia", null, 1);
-        Categoria galenicos = cat("Galénicos", "galenicos", null, 2);
-        Categoria dermo = cat("Dermocosmético", "dermocosmetico", null, 3);
         Categoria mamaBebe = cat("Mamá y Bebé", "mama-y-bebe", null, 4);
-        Categoria adultoMayor = cat("Adulto Mayor", "adulto-mayor", null, 5);
-        
-        // NUEVAS CATEGORÍAS DE TU EXCEL
-        Categoria cosmeticos = cat("Cosméticos", "cosmeticos", null, 6);
-        Categoria dispositivos = cat("Dispositivos Médicos", "dispositivos-medicos", null, 7);
+        cat("Galénicos", "galenicos", null, 2);
+        cat("Dermocosmético", "dermocosmetico", null, 3);
+        cat("Adulto Mayor", "adulto-mayor", null, 5);
+        cat("Cosméticos", "cosmeticos", null, 6);
+        cat("Dispositivos Médicos", "dispositivos-medicos", null, 7);
 
-        // SUBCATEGORÍAS (Las que teníamos antes)
-        Categoria analgesicos = cat("Analgésicos", "analgesicos", farmacia, 1);
-        Categoria antigripales = cat("Antigripales", "antigripales", farmacia, 2);
-        Categoria antibioticos = cat("Antibióticos", "antibioticos", farmacia, 3);
-        Categoria nutricion = cat("Nutrición", "nutricion", farmacia, 4);
-        Categoria botiquin = cat("Botiquín", "botiquin", farmacia, 5);
-        Categoria panales = cat("Pañales", "panales", mamaBebe, 1); 
-        Categoria antiinflamatorio = cat("Antiinflamatorios", "antiinflamatorio", farmacia, 6);
-        Categoria antimicotico = cat("Antimicóticos", "antimicotico", farmacia, 7);
-        Categoria betabloqueantes = cat("Betabloqueantes", "betabloqueantes", farmacia, 8);
-        Categoria antifungico = cat("Antifúngicos", "antifungico", farmacia, 9);
+        cat("Analgésicos", "analgesicos", farmacia, 1);
+        cat("Antigripales", "antigripales", farmacia, 2);
+        cat("Antibióticos", "antibioticos", farmacia, 3);
+        cat("Nutrición", "nutricion", farmacia, 4);
+        cat("Botiquín", "botiquin", farmacia, 5);
+        cat("Antiinflamatorios", "antiinflamatorio", farmacia, 6);
+        cat("Antimicóticos", "antimicotico", farmacia, 7);
+        cat("Betabloqueantes", "betabloqueantes", farmacia, 8);
+        cat("Antifúngicos", "antifungico", farmacia, 9);
+        cat("Pañales", "panales", mamaBebe, 1);
 
-        // 2. MAPA DE CATEGORÍAS (Conecta el Excel con Java)
-        Map<String, Categoria> mapaCategorias = new HashMap<>();
-        mapaCategorias.put("farmacia", farmacia);
-        mapaCategorias.put("galenicos", galenicos);
-        mapaCategorias.put("dermocosmetico", dermo);
-        mapaCategorias.put("mama-y-bebe", mamaBebe);
-        mapaCategorias.put("adulto-mayor", adultoMayor);
-        mapaCategorias.put("cosmeticos", cosmeticos);
-        mapaCategorias.put("dispositivos-medicos", dispositivos);
-        
-        mapaCategorias.put("analgesicos", analgesicos);
-        mapaCategorias.put("antigripales", antigripales);
-        mapaCategorias.put("antibioticos", antibioticos);
-        mapaCategorias.put("nutricion", nutricion);
-        mapaCategorias.put("botiquin", botiquin);
-        mapaCategorias.put("panales", panales);
-        mapaCategorias.put("antiinflamatorio", antiinflamatorio);
-        mapaCategorias.put("antimicotico", antimicotico);
-        mapaCategorias.put("betabloqueantes", betabloqueantes);
-        mapaCategorias.put("antifungico", antifungico);
+        // 2. PRODUCTOS QUE YA ESTÁN, por su foto: así se reconocen los del catálogo
+        // anterior aunque en el CSV tengan otro nombre.
+        Map<String, Producto> porFoto = new HashMap<>();
+        for (Producto p : productoRepository.findAll()) {
+            if (p.getImagenUrl() != null) {
+                porFoto.putIfAbsent(claveFoto(p.getImagenUrl()), p);
+            } else if (FOTO_DEL_CATALOGO_MAS_VIEJO.containsKey(p.getNombre())) {
+                porFoto.putIfAbsent(claveFoto(FOTO_DEL_CATALOGO_MAS_VIEJO.get(p.getNombre())), p);
+            }
+        }
 
-        // 3. LEEMOS EL CSV
+        // 3. EL CSV
+        int creados = 0;
+        int actualizados = 0;
         try (BufferedReader br = new BufferedReader(new InputStreamReader(
                 getClass().getResourceAsStream("/productos.csv"), StandardCharsets.UTF_8))) {
-            
-            String linea;
-            boolean primeraLinea = true;
-            int contador = 0;
 
+            // El separador sale de la cabecera (Excel guarda con ";" o ","). Partir
+            // por cualquiera de los tres rompía las filas con una coma en el nombre.
+            String cabecera = br.readLine().replace("\uFEFF", "");
+            String separador = cabecera.contains(";") ? ";" : cabecera.contains("\t") ? "\t" : ",";
+
+            String linea;
+            int numero = 1;
             while ((linea = br.readLine()) != null) {
-                if (primeraLinea) {
-                    primeraLinea = false;
+                numero++;
+                if (linea.isBlank()) continue;
+                String[] d = linea.split(separador, -1);
+                // Una fila mal escrita se avisa y se salta, sin perder el resto.
+                if (d.length < 9) {
+                    log.warn("productos.csv fila {}: tiene {} columnas y se esperaban 9, se omite", numero, d.length);
                     continue;
                 }
+                try {
+                    String nombre = d[0].trim();
+                    if (productoRepository.existsByNombre(nombre)) continue;
 
-                // Acepta comas, punto y coma o tabulaciones
-                String[] datos = linea.split("[;\\t,]", -1); 
-                
-                if (datos.length >= 9) {
-                    String nombre = datos[0].trim();
-                    String catSlug = datos[1].trim().toLowerCase();
-                    BigDecimal precio = new BigDecimal(datos[2].trim());
-                    int stock = Integer.parseInt(datos[3].trim());
-                    String marca = datos[4].trim();
-                    String presentacion = datos[5].trim();
-                    boolean requiereReceta = Boolean.parseBoolean(datos[6].trim());
-                    String imagenUrl = datos[7].trim();
-                    String registroSanitario = datos[8].trim();
+                    String slug = d[1].trim().toLowerCase();
+                    Categoria categoria = categoriaRepository.findBySlug(slug).orElse(null);
+                    if (categoria == null) {
+                        log.warn("productos.csv fila {}: la categoría '{}' no existe, va a Farmacia", numero, slug);
+                        categoria = farmacia;
+                    }
+                    String presentacion = d[5].trim();
+                    String imagenUrl = d[7].trim();
+                    String registro = d[8].trim();
 
-                    Categoria catAsignada = mapaCategorias.getOrDefault(catSlug, farmacia);
-
-                    productoRepository.save(Producto.builder()
-                            .nombre(nombre)
-                            .descripcion(nombre + " - " + presentacion)
-                            .precio(precio)
-                            .stock(stock)
-                            .categoria(catAsignada)
-                            .marca(marca)
-                            .presentacion(presentacion)
-                            .requiereReceta(requiereReceta)
-                            .imagenUrl(imagenUrl)
-                            .registroSanitario(registroSanitario.isEmpty() ? "N/A" : registroSanitario)
-                            .activo(true)
-                            .build());
-                    contador++;
+                    Producto anterior = porFoto.get(claveFoto(imagenUrl));
+                    boolean ponerAlDia = anterior != null && sinEditar(anterior);
+                    Producto p = ponerAlDia ? anterior
+                            : Producto.builder().stock(Integer.parseInt(d[3].trim())).activo(true).build();
+                    p.setNombre(nombre);
+                    p.setDescripcion(nombre + " - " + presentacion);
+                    p.setPrecio(new BigDecimal(d[2].trim()));
+                    p.setCategoria(categoria);
+                    p.setMarca(d[4].trim());
+                    p.setPresentacion(presentacion);
+                    p.setRequiereReceta(Boolean.parseBoolean(d[6].trim()));
+                    p.setImagenUrl(imagenUrl);
+                    p.setRegistroSanitario(registro.isEmpty() ? "N/A" : registro);
+                    productoRepository.save(p);
+                    if (ponerAlDia) {
+                        porFoto.remove(claveFoto(imagenUrl));
+                        actualizados++;
+                    } else {
+                        creados++;
+                    }
+                } catch (RuntimeException e) {
+                    log.warn("productos.csv fila {}: {} — se omite", numero, e.getMessage());
                 }
             }
-            log.info("Seed: Catálogo cargado desde CSV. {} productos creados.", contador);
-
         } catch (Exception e) {
-            log.error("Error al leer productos.csv: " + e.getMessage());
+            log.error("No se pudo leer productos.csv: {}", e.getMessage());
         }
+
+        log.info("Seed: catálogo al día ({} nuevos, {} actualizados, {} productos en total)",
+                creados, actualizados, productoRepository.count());
     }
 
+    /**
+     * Los 8 productos del primer catálogo no tenían foto: esta es la que les toca,
+     * para reconocerlos en las bases que todavía los tienen así.
+     */
+    private static final Map<String, String> FOTO_DEL_CATALOGO_MAS_VIEJO = Map.of(
+            "Paracetamol 500 mg", "Paracetamol-500mg-Via-Oral-Tabletas-100.webp",
+            "Ibuprofeno 400 mg", "actron-ibuprofeno-400mg-Capsulax1.webp",
+            "Pregabalina 75 mg", "Pregabalina-75mg-Capsulas-30.webp",
+            "Antigripal Forte", "Panadol-Antigripal-NF-52SOB-2TABS.jpg",
+            "Diutin Fibercel Fibra Soluble", "diutin-FIBERCEL-FIBRA-SOLUBLE-336g.webp",
+            "Protector Solar FPS 50", "alma-secret-crema-solar-facial-spf50-50-ml.jpg",
+            "Pañales Talla M x40", "HUGGIES-Natural-Care-M2-Pañalesx60.jpg",
+            "Multivitamínico Adulto Mayor", "Centrum-ADULTO-Comprimidosx30-400mg.jpg");
 
+    /** Nombre del archivo sin carpeta, en minúsculas y sin "°" (se quitó al renombrar las fotos). */
+    private static String claveFoto(String url) {
+        return url.substring(url.lastIndexOf('/') + 1).toLowerCase().replace("°", "");
+    }
 
+    /**
+     * El catálogo siempre arma la descripción como "nombre - presentación". Si
+     * sigue así, el producto es el de ejemplo tal cual; si no, alguien lo editó
+     * desde el panel y se respeta.
+     */
+    private static boolean sinEditar(Producto p) {
+        return (p.getNombre() + " - " + p.getPresentacion()).equals(p.getDescripcion());
+    }
 
     private void seedClienteDemo() {
         if (clienteRepository.count() > 0) return;
@@ -194,9 +222,10 @@ public class DataSeeder implements CommandLineRunner {
         log.info("Seed: cliente demo creado (cliente@demo.pe / Cliente123!)");
     }
 
+    /** Devuelve la categoría con ese slug, creándola si no existe. */
     private Categoria cat(String nombre, String slug, Categoria padre, int orden) {
-        return categoriaRepository.save(Categoria.builder()
+        return categoriaRepository.findBySlug(slug).orElseGet(() -> categoriaRepository.save(Categoria.builder()
                 .nombre(nombre).slug(slug).categoriaPadre(padre).orden(orden).activo(true)
-                .build());
+                .build()));
     }
 }
