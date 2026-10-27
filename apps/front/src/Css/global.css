@@ -99,3 +99,27 @@ textarea {
   font-size: 14px;
   margin-bottom: 14px;
 }
+
+/* Grilla de productos de la tienda. En pantalla grande muestra 5 columnas en
+   el inicio y 4 en las categorías (que tienen la barra de filtros al lado), y
+   va quitando columnas a medida que la pantalla se achica: con un número fijo,
+   en el celular salían 5 tarjetas diminutas por fila. */
+.grilla-productos {
+  display: grid;
+  gap: 16px;
+}
+.grilla-productos.columnas-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.grilla-productos.columnas-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+@media (max-width: 1200px) {
+  .grilla-productos.columnas-5 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .grilla-productos.columnas-4 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 960px) {
+  .grilla-productos.columnas-5,
+  .grilla-productos.columnas-4 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  .grilla-productos.columnas-5,
+  .grilla-productos.columnas-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+}

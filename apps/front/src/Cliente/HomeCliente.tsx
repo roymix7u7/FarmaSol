@@ -100,13 +100,7 @@ export function HomeCliente() {
           No hay productos disponibles por ahora.
         </p>
       ) : (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
-            gap: 16,
-          }}
-        >
+        <div className="grilla-productos columnas-5">
           {productos.map((prod) => {
             const stock = estadoStock(prod.stock);
             const tieneDescuento = prod.descuentoUnitario > 0;
