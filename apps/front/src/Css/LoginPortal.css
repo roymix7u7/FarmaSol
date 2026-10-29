@@ -1,0 +1,181 @@
+/* ============ PORTAL DE LOGIN (Gerente / Empleado) ============ */
+.trabajador-body {
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f7;
+    font-family: 'Inter', system-ui, sans-serif;
+    padding: 20px;
+}
+
+.trabajador-card {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 40px 36px 32px 36px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    border: 1px solid #ececec;
+}
+
+.trabajador-logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 24px;
+}
+
+.trabajador-logo img {
+    height: 42px;
+    width: auto;
+    object-fit: contain;
+}
+
+.trabajador-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    text-align: center;
+    margin-bottom: 6px;
+}
+
+.trabajador-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.trabajador-divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin-bottom: 24px;
+}
+
+.trabajador-field {
+    margin-bottom: 20px;
+}
+
+.trabajador-label {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 8px;
+}
+
+.trabajador-input-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.trabajador-input-box input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid #d1d5db;
+    border-radius: 10px;
+    font-size: 14.5px;
+    color: #111827;
+    background: #ffffff;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    font-family: inherit;
+}
+
+.trabajador-input-box input:focus {
+    border-color: #1e293b;
+    box-shadow: 0 0 0 3px rgba(30, 41, 59, 0.08);
+}
+
+.trabajador-input-box input::placeholder {
+    color: #9ca3af;
+}
+
+.trabajador-eye {
+    position: absolute;
+    right: 14px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6b7280;
+    font-size: 16px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.trabajador-eye:hover {
+    color: #111827;
+}
+
+.trabajador-btn {
+    width: 100%;
+    padding: 14px;
+    background-color: #1e293b;
+    color: #ffffff;
+    border: none;
+    border-radius: 10px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.1s;
+    margin-top: 8px;
+    font-family: inherit;
+}
+
+.trabajador-btn:hover:not(:disabled) {
+    background-color: #0f172a;
+}
+
+.trabajador-btn:active {
+    transform: scale(0.99);
+}
+
+.trabajador-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.trabajador-footer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 26px;
+    font-size: 12px;
+    color: #9ca3af;
+}
+
+.trabajador-footer i {
+    font-size: 11px;
+}
+
+.trabajador-error {
+    color: #dc2626;
+    font-size: 13.5px;
+    text-align: center;
+    margin-bottom: 12px;
+    padding: 10px;
+    background: #fef2f2;
+    border-radius: 8px;
+    border: 1px solid #fecaca;
+}
+
+.trabajador-forgot {
+    display: block;
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+    color: #1e293b;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.trabajador-forgot:hover {
+    text-decoration: underline;
+}
