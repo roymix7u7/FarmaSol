@@ -45,6 +45,23 @@ public class RecetaServiceImpl implements RecetaService {
 
     @Override
     @Transactional
+    public RecetaResponse guardarRecetaTemporal(Long idCliente, Long idProducto, MultipartFile archivo) {
+        validarArchivo(archivo);
+        String ruta = guardarArchivo(archivo);
+
+        // Creamos la receta provisional directamente con save
+        Receta receta = Receta.builder()
+                .archivoRuta(ruta)
+                .tipoContenido(archivo.getContentType())
+                .estado(EstadoReceta.PENDIENTE_REVISION)
+                .fechaSubida(LocalDateTime.now())
+                .build();
+
+        return toResponse(recetaRepository.save(receta));
+    }
+
+    @Override
+    @Transactional
     public RecetaResponse subir(Long idCliente, Long idPedidoDetalle, MultipartFile archivo) {
         PedidoDetalle detalle = pedidoDetalleRepository.findById(idPedidoDetalle)
                 .orElseThrow(() -> new ResourceNotFoundException("Línea de pedido no encontrada"));
@@ -59,12 +76,14 @@ public class RecetaServiceImpl implements RecetaService {
 
         String ruta = guardarArchivo(archivo);
 
-        Receta receta = Receta.builder()
-                .pedidoDetalle(detalle)
-                .archivoRuta(ruta)
-                .tipoContenido(archivo.getContentType())
-                .estado(EstadoReceta.PENDIENTE_REVISION)
-                .build();
+       
+Receta receta = recetaRepository.findFirstByPedidoDetalle_IdOrderByFechaSubidaDesc(idPedidoDetalle).orElse(new Receta());
+
+        receta.setPedidoDetalle(detalle);
+        receta.setArchivoRuta(ruta);
+        receta.setTipoContenido(archivo.getContentType());
+        receta.setEstado(EstadoReceta.PENDIENTE_REVISION);
+        receta.setFechaSubida(LocalDateTime.now());
 
         return toResponse(recetaRepository.save(receta));
     }
@@ -73,7 +92,7 @@ public class RecetaServiceImpl implements RecetaService {
     @Transactional(readOnly = true)
     public List<RecetaResponse> listarDePedido(Long idPedido) {
         List<Receta> recetas = recetaRepository.findByPedidoDetalle_Pedido_IdOrderByFechaSubidaDesc(idPedido);
-        if (!recetas.isEmpty()) {
+        if (!recetas.isEmpty() && recetas.get(0).getPedidoDetalle() != null) {
             verificarAcceso(recetas.get(0));
         }
         return recetas.stream().map(this::toResponse).toList();
@@ -114,9 +133,16 @@ public class RecetaServiceImpl implements RecetaService {
     @Transactional(readOnly = true)
     public ArchivoRecetaDTO obtenerArchivo(Long idReceta) {
         Receta receta = buscar(idReceta);
-        verificarAcceso(receta);
+        if (receta.getPedidoDetalle() != null) {
+            verificarAcceso(receta);
+        }
 
-        Path ruta = Path.of(directorioUploads).resolve(receta.getArchivoRuta());
+        Path ruta = Path.of(directorioUploads).resolve(receta.getArchivoRuta()).normalize().toAbsolutePath();
+
+        if (!Files.exists(ruta)) {
+            throw new ResourceNotFoundException("El archivo físico de la receta no existe en el servidor: " + ruta.toString());
+        }
+
         try {
             byte[] contenido = Files.readAllBytes(ruta);
             return new ArchivoRecetaDTO(contenido, receta.getTipoContenido(), ruta.getFileName().toString());
@@ -125,15 +151,16 @@ public class RecetaServiceImpl implements RecetaService {
         }
     }
 
-    /** El cliente dueño del pedido, o cualquier personal, pueden ver/listar la receta. */
     private void verificarAcceso(Receta receta) {
         var actual = SecurityUtils.actual();
         if (actual.getTipo() == TipoUsuario.PERSONAL) {
             return;
         }
-        Long idClienteDueno = receta.getPedidoDetalle().getPedido().getCliente().getId();
-        if (!idClienteDueno.equals(actual.getUid())) {
-            throw new ResourceNotFoundException("Receta no encontrada");
+        if (receta.getPedidoDetalle() != null && receta.getPedidoDetalle().getPedido() != null) {
+            Long idClienteDueno = receta.getPedidoDetalle().getPedido().getCliente().getId();
+            if (!idClienteDueno.equals(actual.getUid())) {
+                throw new ResourceNotFoundException("Receta no encontrada");
+            }
         }
     }
 
@@ -175,6 +202,17 @@ public class RecetaServiceImpl implements RecetaService {
 
     private RecetaResponse toResponse(Receta r) {
         PedidoDetalle d = r.getPedidoDetalle();
+        
+        if (d == null || d.getPedido() == null) {
+            return RecetaResponse.builder()
+                    .id(r.getId())
+                    .estado(r.getEstado())
+                    .motivoRechazo(r.getMotivoRechazo())
+                    .fechaSubida(r.getFechaSubida())
+                    .nombreProducto("Receta Provisional")
+                    .build();
+        }
+
         return RecetaResponse.builder()
                 .id(r.getId())
                 .idPedido(d.getPedido().getId())
@@ -182,7 +220,8 @@ public class RecetaServiceImpl implements RecetaService {
                 .idPedidoDetalle(d.getId())
                 .nombreProducto(d.getNombreProducto())
                 .cantidad(d.getCantidad())
-                .nombreCliente(d.getPedido().getCliente().getNombres() + " " + d.getPedido().getCliente().getApellidos())
+                .nombreCliente(d.getPedido().getCliente() != null ? 
+                    d.getPedido().getCliente().getNombres() + " " + d.getPedido().getCliente().getApellidos() : "Cliente")
                 .estado(r.getEstado())
                 .motivoRechazo(r.getMotivoRechazo())
                 .revisadoPor(r.getRevisadoPor() != null ? r.getRevisadoPor().getUsuario() : null)

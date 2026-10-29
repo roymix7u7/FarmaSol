@@ -24,6 +24,18 @@ public class RecetaController {
 
     private final RecetaService recetaService;
 
+    /**
+     * Permite subir la receta provisionalmente desde el carrito usando el idProducto
+     * antes de que se confirme el pedido definitivo.
+     */
+    @PostMapping(value = "/api/recetas/carrito/producto/{idProducto}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('CLIENTE')")
+    public ResponseEntity<RecetaResponse> subirTemporal(@PathVariable Long idProducto,
+                                                        @RequestParam("archivo") MultipartFile archivo) {
+        RecetaResponse receta = recetaService.guardarRecetaTemporal(SecurityUtils.getUidActual(), idProducto, archivo);
+        return new ResponseEntity<>(receta, HttpStatus.CREATED);
+    }
+
     @PostMapping(value = "/api/pedidos/detalles/{idPedidoDetalle}/receta", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('CLIENTE')")
     public ResponseEntity<RecetaResponse> subir(@PathVariable Long idPedidoDetalle,
@@ -62,7 +74,7 @@ public class RecetaController {
     @PatchMapping("/api/recetas/{id}/rechazar")
     @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<RecetaResponse> rechazar(@PathVariable Long id,
-                                                   @Valid @RequestBody RechazarRecetaRequest request) {
+                                                     @Valid @RequestBody RechazarRecetaRequest request) {
         return ResponseEntity.ok(recetaService.rechazar(SecurityUtils.getUidActual(), id, request.getMotivo()));
     }
 }

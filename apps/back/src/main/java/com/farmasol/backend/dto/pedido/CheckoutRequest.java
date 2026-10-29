@@ -31,6 +31,18 @@ public class CheckoutRequest {
     @Size(max = 255)
     private String notas;
 
+    // --- NUEVOS CAMPOS DE PAGO (YAPE / VISA) ---
+    @NotNull(message = "Debe seleccionar un método de pago")
+    private String metodoPago; // "YAPE" o "VISA"
+
+    private String subMetodoYape; // "QR" o "CODIGO"
+
+    @Size(max = 15)
+    private String yapeCelular;
+
+    @Size(max = 30)
+    private String yapeCodigoOperacion;
+
     @AssertTrue(message = "Para envío a domicilio debes elegir una dirección")
     public boolean isDeliveryValido() {
         return tipoEntrega != TipoEntrega.DELIVERY || idDireccion != null;
@@ -41,5 +53,15 @@ public class CheckoutRequest {
         return tipoEntrega != TipoEntrega.RECOJO_TIENDA
                 || (idSede != null && recojoNombre != null && !recojoNombre.isBlank()
                     && recojoDni != null && !recojoDni.isBlank());
+    }
+
+    @AssertTrue(message = "Debe ingresar el celular y el código de aprobación de Yape")
+    public boolean isYapeValido() {
+        if (!"YAPE".equals(metodoPago)) return true;
+        if ("CODIGO".equals(subMetodoYape)) {
+            return yapeCelular != null && !yapeCelular.isBlank() 
+                && yapeCodigoOperacion != null && !yapeCodigoOperacion.isBlank();
+        }
+        return true; // Si es QR no exige campos extra
     }
 }

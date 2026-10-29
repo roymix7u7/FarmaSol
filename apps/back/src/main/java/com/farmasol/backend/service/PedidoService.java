@@ -25,4 +25,9 @@ public interface PedidoService {
     PedidoResponse obtenerAdmin(Long idPedido);
 
     PedidoResponse cambiarEstado(Long idPersonal, Long idPedido, EstadoPedido nuevoEstado);
+    
+
+    // ... tus otros métodos existentes ...
+    byte[] generarComprobantePdf(Long idPedido);
+
 }

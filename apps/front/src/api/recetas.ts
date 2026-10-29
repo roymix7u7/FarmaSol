@@ -19,6 +19,17 @@ export interface Receta {
 }
 
 export const recetasApi = {
+  /** Sube la receta provisionalmente desde el carrito usando el idProducto. */
+  subirTemporal(idProducto: number, archivo: File) {
+    const datos = new FormData();
+    datos.append('archivo', archivo);
+    return api
+      .post<Receta>(`/recetas/carrito/producto/${idProducto}`, datos, {
+        headers: { 'Content-Type': undefined },
+      })
+      .then((r) => r.data);
+  },
+
   /** Sube la receta de una línea del pedido. El backend la deja en revisión. */
   subir(idPedidoDetalle: number, archivo: File) {
     const datos = new FormData();

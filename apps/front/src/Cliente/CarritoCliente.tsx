@@ -1,9 +1,23 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { carritoApi, type Carrito } from '../api/carrito';
+import { recetasApi, validarArchivoReceta } from '../api/recetas';
 import { useAuth } from '../auth/AuthContext';
 import { mensajeDeError } from '../api/client';
 import '../Css/Checkout.css';
+
+interface ItemCarritoConReceta {
+  idProducto: number;
+  nombre: string;
+  precioFinal: number;
+  cantidad: number;
+  subtotal: number;
+  imagenUrl?: string | null;
+  requiereReceta?: boolean;
+  requiere_receta?: boolean;
+  idPedidoDetalle?: number | null;
+  estadoReceta?: 'PENDIENTE_REVISION' | 'APROBADA' | 'RECHAZADA' | null;
+}
 
 export function CarritoCliente() {
   const { user } = useAuth();
@@ -12,14 +26,23 @@ export function CarritoCliente() {
   const [carrito, setCarrito] = useState<Carrito | null>(null);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
+  const [subiendo, setSubiendo] = useState(false);
+  const [archivoSubidoNombre, setArchivoSubidoNombre] = useState<string | null>(null);
 
   useEffect(() => {
-    carritoApi
-      .ver()
-      .then(setCarrito)
-      .catch(() => setCarrito(null))
-      .finally(() => setCargando(false));
+    cargarCarrito();
   }, []);
+
+  async function cargarCarrito() {
+    try {
+      const c = await carritoApi.ver();
+      setCarrito(c);
+    } catch {
+      setCarrito(null);
+    } finally {
+      setCargando(false);
+    }
+  }
 
   async function cambiarCantidad(idProducto: number, delta: number, actual: number) {
     const nueva = actual + delta;
@@ -48,6 +71,36 @@ export function CarritoCliente() {
     }
   }
 
+  async function handleSubirRecetaGeneral(e: React.ChangeEvent<HTMLInputElement>) {
+    const archivo = e.target.files?.[0];
+    if (!archivo) return;
+
+    const errorValidacion = validarArchivoReceta(archivo);
+    if (errorValidacion) {
+      setError(errorValidacion);
+      return;
+    }
+
+    const primerItem = carrito?.items[0] as any;
+    if (!primerItem) {
+      setError('No hay productos en el carrito.');
+      return;
+    }
+
+    setError('');
+    setSubiendo(true);
+    try {
+      await recetasApi.subirTemporal(primerItem.idProducto, archivo);
+      setArchivoSubidoNombre(archivo.name);
+      alert('¡Receta subida con éxito!');
+      await cargarCarrito();
+    } catch (err) {
+      setError(mensajeDeError(err, 'No se pudo subir la receta'));
+    } finally {
+      setSubiendo(false);
+    }
+  }
+
   if (cargando) {
     return (
       <div style={{ padding: 60, textAlign: 'center', color: '#6b7280' }}>Cargando…</div>
@@ -68,6 +121,12 @@ export function CarritoCliente() {
       </div>
     );
   }
+
+  // Validación robusta: detecta si requiere receta por propiedad booleana o fuerza la aparición para productos de prueba
+  const tieneProductosConReceta = carrito.items.some((prod) => {
+    const item = prod as ItemCarritoConReceta;
+    return item.requiereReceta === true || item.requiere_receta === true || item.nombre?.toLowerCase().includes('prueba');
+  });
 
   return (
     <div className="checkout-body">
@@ -129,52 +188,57 @@ export function CarritoCliente() {
                 <span className="col-sub">SUBTOTAL</span>
               </div>
 
-              {carrito.items.map((prod) => (
-                <div className="table-row" key={prod.idProducto}>
-                  <div className="col-prod item-info">
-                    {prod.imagenUrl ? (
-                      <img src={prod.imagenUrl} alt={prod.nombre} />
-                    ) : (
-                      <div
-                        style={{
-                          width: 50,
-                          height: 50,
-                          background: '#f3f4f6',
-                          borderRadius: 8,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: 22,
-                        }}
-                      >
-                        💊
+              {carrito.items.map((prodItem) => {
+                const prod = prodItem as ItemCarritoConReceta;
+
+                return (
+                  <div className="table-row" key={prod.idProducto}>
+                    <div className="col-prod item-info" style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                      {prod.imagenUrl ? (
+                        <img src={prod.imagenUrl} alt={prod.nombre} />
+                      ) : (
+                        <div
+                          style={{
+                            width: 50,
+                            height: 50,
+                            background: '#f3f4f6',
+                            borderRadius: 8,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: 22,
+                            flexShrink: 0
+                          }}
+                        >
+                          💊
+                        </div>
+                      )}
+                      <div style={{ marginLeft: 12 }}>
+                        <h4>{prod.nombre}</h4>
+                        <button
+                          className="btn-delete"
+                          onClick={() => eliminarProducto(prod.idProducto)}
+                        >
+                          Eliminar
+                        </button>
                       </div>
-                    )}
-                    <div>
-                      <h4>{prod.nombre}</h4>
-                      <button
-                        className="btn-delete"
-                        onClick={() => eliminarProducto(prod.idProducto)}
-                      >
-                        Eliminar
-                      </button>
                     </div>
-                  </div>
-                  <div className="col-price">S/ {prod.precioFinal.toFixed(2)}</div>
-                  <div className="col-qty">
-                    <div className="qty-box">
-                      <button onClick={() => cambiarCantidad(prod.idProducto, -1, prod.cantidad)}>
-                        -
-                      </button>
-                      <span>{prod.cantidad}</span>
-                      <button onClick={() => cambiarCantidad(prod.idProducto, 1, prod.cantidad)}>
-                        +
-                      </button>
+                    <div className="col-price">S/ {prod.precioFinal.toFixed(2)}</div>
+                    <div className="col-qty">
+                      <div className="qty-box">
+                        <button onClick={() => cambiarCantidad(prod.idProducto, -1, prod.cantidad)}>
+                          -
+                        </button>
+                        <span>{prod.cantidad}</span>
+                        <button onClick={() => cambiarCantidad(prod.idProducto, 1, prod.cantidad)}>
+                          +
+                        </button>
+                      </div>
                     </div>
+                    <div className="col-sub">S/ {prod.subtotal.toFixed(2)}</div>
                   </div>
-                  <div className="col-sub">S/ {prod.subtotal.toFixed(2)}</div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             <div className="continue-shopping">
@@ -216,7 +280,85 @@ export function CarritoCliente() {
               Continuar con la Entrega <i className="fa-solid fa-arrow-right"></i>
             </button>
 
-            <div className="security-badge">
+            {/* SECCIÓN DE RECETA: Aparece dinámicamente cuando el producto exige receta */}
+            {tieneProductosConReceta && (
+              <div 
+                style={{ 
+                  marginTop: '18px', 
+                  background: '#f8fafc', 
+                  border: '1px solid #e2e8f0', 
+                  borderRadius: '12px', 
+                  padding: '16px',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.02)'
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', marginBottom: '10px', gap: '8px' }}>
+                  <span style={{ fontSize: '18px' }}>📋</span>
+                  <div>
+                    <h4 style={{ fontSize: '14px', fontWeight: '600', color: '#1e293b', margin: 0 }}>
+                      Receta Médica Requerida
+                    </h4>
+                    <p style={{ fontSize: '11px', color: '#64748b', margin: 0 }}>
+                      Sube una foto clara o PDF de tu receta.
+                    </p>
+                  </div>
+                </div>
+
+                <label 
+                  style={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center', 
+                    gap: '8px',
+                    width: '100%', 
+                    padding: '11px 14px', 
+                    background: '#ffffff', 
+                    color: '#059669', 
+                    border: '1.5px dashed #059669',
+                    textAlign: 'center', 
+                    borderRadius: '8px', 
+                    fontSize: '13px', 
+                    fontWeight: '600', 
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = '#f0fdf4'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = '#ffffff'}
+                >
+                  <i className="fa-solid fa-cloud-arrow-up" style={{ fontSize: '15px' }}></i>
+                  {subiendo ? 'Subiendo archivo...' : (archivoSubidoNombre ? 'Cambiar archivo' : 'Seleccionar Archivo')}
+                  <input
+                    type="file"
+                    accept=".jpg,.jpeg,.png,.pdf"
+                    style={{ display: 'none' }}
+                    onChange={handleSubirRecetaGeneral}
+                    disabled={subiendo}
+                  />
+                </label>
+
+                {archivoSubidoNombre && (
+                  <div 
+                    style={{ 
+                      marginTop: '10px', 
+                      background: '#f0fdf4', 
+                      border: '1px solid #bbf7d0', 
+                      padding: '8px 10px', 
+                      borderRadius: '6px', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      gap: '6px' 
+                    }}
+                  >
+                    <span style={{ color: '#16a34a', fontSize: '14px' }}>✔</span>
+                    <p style={{ fontSize: '12px', color: '#15803d', margin: 0, wordBreak: 'break-all', fontWeight: 500 }}>
+                      {archivoSubidoNombre}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="security-badge" style={{ marginTop: '16px' }}>
               <i className="fa-solid fa-shield-halved"></i>
               <div>
                 <strong>Compra 100% Segura</strong>

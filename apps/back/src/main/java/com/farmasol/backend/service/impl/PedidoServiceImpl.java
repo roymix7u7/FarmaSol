@@ -1,5 +1,11 @@
 package com.farmasol.backend.service.impl;
 
+import com.itextpdf.text.*;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
+import java.io.ByteArrayOutputStream;
+
 import com.farmasol.backend.dto.pedido.CheckoutRequest;
 import com.farmasol.backend.dto.pedido.PedidoDetalleResponse;
 import com.farmasol.backend.dto.pedido.PedidoResponse;
@@ -14,11 +20,13 @@ import com.farmasol.backend.model.enums.TipoEntrega;
 import com.farmasol.backend.repository.*;
 import com.farmasol.backend.service.PedidoService;
 import com.farmasol.backend.service.PrecioService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.Year;
@@ -61,7 +69,6 @@ public class PedidoServiceImpl implements PedidoService {
             }
         }
 
-        // Los productos con receta van en un pedido aparte: no bloquean la compra de los demás.
         List<Pedido> pedidosCreados = new ArrayList<>();
         if (!sinReceta.isEmpty()) {
             pedidosCreados.add(armarPedido(carrito.getCliente(), request, sinReceta, false, pedidosCreados.isEmpty()));
@@ -110,8 +117,6 @@ public class PedidoServiceImpl implements PedidoService {
         BigDecimal subtotal = BigDecimal.ZERO;
         BigDecimal descuentoTotal = BigDecimal.ZERO;
 
-        // Precios de todas las lineas de una vez: dentro del bucle era una tanda
-        // de consultas por linea (N+1).
         Map<Long, PrecioCalculadoDTO> precios = precioService.calcular(
                 lineas.stream().map(CarritoDetalle::getProducto).toList());
 
@@ -150,7 +155,21 @@ public class PedidoServiceImpl implements PedidoService {
         Pedido guardado = pedidoRepository.save(pedido);
         String sufijo = conReceta ? "-R" : "";
         guardado.setCodigoPedido("PED-" + Year.now() + "-" + String.format("%06d", guardado.getId()) + sufijo);
-        return pedidoRepository.save(guardado);
+        Pedido pedidoFinal = pedidoRepository.save(guardado);
+
+        if (conReceta) {
+            List<Receta> recetasProvisionales = recetaRepository.findByPedidoDetalleIsNull();
+            int index = 0;
+            for (PedidoDetalle d : pedidoFinal.getDetalles()) {
+                if (Boolean.TRUE.equals(d.getRequiereReceta()) && index < recetasProvisionales.size()) {
+                    Receta r = recetasProvisionales.get(index++);
+                    r.setPedidoDetalle(d);
+                    recetaRepository.save(r);
+                }
+            }
+        }
+
+        return pedidoFinal;
     }
 
     @Override
@@ -211,6 +230,107 @@ public class PedidoServiceImpl implements PedidoService {
 
         pedido.setEstado(nuevoEstado);
         return toResponse(pedidoRepository.save(pedido));
+    }
+// =========================================================================
+    // MÉTODO IMPLEMENTADO PARA LA GENERACIÓN DEL COMPROBANTE PDF
+    // =========================================================================
+   @Override
+    @Transactional(readOnly = true)
+    public byte[] generarComprobantePdf(Long idPedido) {
+        Pedido pedido = pedidoRepository.findWithDetallesById(idPedido)
+                .orElseThrow(() -> new ResourceNotFoundException("Pedido no encontrado con ID: " + idPedido));
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        Document document = new Document(PageSize.A4, 36, 36, 36, 36);
+
+        try {
+            PdfWriter.getInstance(document, baos);
+            document.open();
+
+            BaseColor colorVerde = new BaseColor(16, 185, 129);
+            BaseColor colorGrisOscuro = new BaseColor(31, 41, 55);
+
+            // Título
+            Font fontTitulo = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 20, colorVerde);
+            Paragraph titulo = new Paragraph("FarmaSOL - Comprobante Electrónico", fontTitulo);
+            titulo.setAlignment(Element.ALIGN_CENTER);
+            document.add(titulo);
+
+            Font fontSub = FontFactory.getFont(FontFactory.HELVETICA, 11, colorGrisOscuro);
+            Paragraph sub = new Paragraph("Boleta de Venta / Nota de Pedido", fontSub);
+            sub.setAlignment(Element.ALIGN_CENTER);
+            sub.setSpacingAfter(15);
+            document.add(sub);
+
+            // Datos Generales
+            Font fontNegrita = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, colorGrisOscuro);
+            Font fontNormal = FontFactory.getFont(FontFactory.HELVETICA, 10, colorGrisOscuro);
+
+            document.add(new Paragraph("Código de Pedido: " + pedido.getCodigoPedido(), fontNegrita));
+            document.add(new Paragraph("Cliente: " + pedido.getCliente().getNombres() + " " + pedido.getCliente().getApellidos(), fontNormal));
+            document.add(new Paragraph("Fecha de Pedido: " + pedido.getFechaPedido(), fontNormal));
+            document.add(new Paragraph("Tipo de Entrega: " + pedido.getTipoEntrega(), fontNormal));
+            
+            if (pedido.getRecojoSede() != null) {
+                document.add(new Paragraph("Sede de Recojo: " + pedido.getRecojoSede(), fontNormal));
+                document.add(new Paragraph("Recoge: " + pedido.getRecojoNombre() + " (DNI: " + pedido.getRecojoDni() + ")", fontNormal));
+            }
+
+            Paragraph espacio = new Paragraph(" ");
+            espacio.setSpacingAfter(10);
+            document.add(espacio);
+
+            // Tabla de Detalle
+            PdfPTable table = new PdfPTable(4);
+            table.setWidthPercentage(100);
+            table.setWidths(new float[]{4f, 1f, 1.5f, 1.5f});
+
+            String[] headers = {"Producto", "Cant.", "P. Unitario", "Subtotal"};
+            for (String header : headers) {
+                PdfPCell cell = new PdfPCell(new Phrase(header, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, BaseColor.WHITE)));
+                cell.setBackgroundColor(colorVerde);
+                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+                cell.setPadding(6);
+                table.addCell(cell);
+            }
+
+            for (PedidoDetalle d : pedido.getDetalles()) {
+                table.addCell(new PdfPCell(new Phrase(d.getNombreProducto(), fontNormal)));
+                
+                PdfPCell cellCant = new PdfPCell(new Phrase(String.valueOf(d.getCantidad()), fontNormal));
+                cellCant.setHorizontalAlignment(Element.ALIGN_CENTER);
+                table.addCell(cellCant);
+
+                PdfPCell cellPrecio = new PdfPCell(new Phrase("S/ " + String.format("%.2f", d.getPrecioUnitario()), fontNormal));
+                cellPrecio.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                table.addCell(cellPrecio);
+
+                PdfPCell cellSub = new PdfPCell(new Phrase("S/ " + String.format("%.2f", d.getSubtotal()), fontNormal));
+                cellSub.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                table.addCell(cellSub);
+            }
+
+            document.add(table);
+
+            // Totales
+            Paragraph totales = new Paragraph();
+            totales.setAlignment(Element.ALIGN_RIGHT);
+            totales.setSpacingBefore(15);
+            totales.add(new Paragraph("Subtotal: S/ " + String.format("%.2f", pedido.getSubtotal()), fontNormal));
+            totales.add(new Paragraph("Costo de Envío: S/ " + String.format("%.2f", pedido.getCostoEnvio()), fontNormal));
+            if (pedido.getDescuentoTotal() != null && pedido.getDescuentoTotal().compareTo(BigDecimal.ZERO) > 0) {
+                totales.add(new Paragraph("Descuentos: -S/ " + String.format("%.2f", pedido.getDescuentoTotal()), fontNormal));
+            }
+            totales.add(new Paragraph("Total Pagado: S/ " + String.format("%.2f", pedido.getTotal()), FontFactory.getFont(FontFactory.HELVETICA_BOLD, 13, colorVerde)));
+            
+            document.add(totales);
+
+            document.close();
+        } catch (DocumentException e) {
+            throw new BusinessException("Error al generar el comprobante PDF del pedido");
+        }
+
+        return baos.toByteArray();
     }
 
     private boolean todasLasRecetasAprobadas(Pedido pedido) {

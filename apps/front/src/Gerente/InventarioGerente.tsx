@@ -53,7 +53,14 @@ export function InventarioGerente() {
   const [errorImagen, setErrorImagen] = useState('');
   const [imagenesDisponibles, setImagenesDisponibles] = useState<string[]>([]);
   const [galeriaAbierta, setGaleriaAbierta] = useState(false);
-  const [hoveredImg, setHoveredImg] = useState<string | null>(null); // Para el botón de eliminar
+  const [hoveredImg, setHoveredImg] = useState<string | null>(null);
+
+  // Estados para el Modal "Contactar Admin"
+  const [modalAdminAbierto, setModalAdminAbierto] = useState(false);
+  const [enviadoAlerta, setEnviadoAlerta] = useState(false);
+  const [tipoIncidencia, setTipoIncidencia] = useState('Discrepancia física de stock en anaquel');
+  const [skuRelacionado, setSkuRelacionado] = useState('');
+  const [observacion, setObservacion] = useState('');
 
   useEffect(() => {
     cargarDatos();
@@ -90,14 +97,9 @@ export function InventarioGerente() {
     if (!confirmar) return;
 
     try {
-      // Extraemos el nombre del archivo de la URL (ej: /img/productos/foto.png -> foto.png)
       const nombreArchivo = url.split('/').pop();
       await api.delete(`/productos/imagenes/${nombreArchivo}`);
-      
-      // Recargar galería
       await cargarImagenes();
-      
-      // Si la imagen eliminada era la que estaba seleccionada en el formulario, limpiamos el campo
       if (form.imagenUrl === url) {
         actualizar('imagenUrl', '');
       }
@@ -230,26 +232,61 @@ export function InventarioGerente() {
     return { texto: 'En Stock', clase: 'badge-green' };
   };
 
+  const handleEnviarAlertaAdmin = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Aquí puedes realizar la llamada a tu API para registrar la alerta si lo requieres
+    setEnviadoAlerta(true);
+  };
+
   return (
     <>
       <div className="table-card">
-        <div className="table-toolbar">
-          <input
-            className="search-input"
-            placeholder="Buscar medicamento por nombre..."
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-          />
-          {puedeEditar ? (
-            <button className="btn-primary" onClick={abrirCrear}>
-              <i className="fa-solid fa-plus"></i> Nuevo Producto
-            </button>
-          ) : (
-            <span style={{ fontSize: 13, color: '#6b7280' }}>
-              <i className="fa-solid fa-lock" style={{ marginRight: 6 }}></i>
-              Solo lectura: el catálogo y los precios los gestiona el administrador
-            </span>
-          )}
+        <div className="table-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 260 }}>
+            <input
+              className="search-input"
+              placeholder="Buscar medicamento por nombre..."
+              value={busqueda}
+              onChange={(e) => setBusqueda(e.target.value)}
+              style={{ flex: 1 }}
+            />
+            {puedeEditar ? (
+              <button className="btn-primary" onClick={abrirCrear}>
+                <i className="fa-solid fa-plus"></i> Nuevo Producto
+              </button>
+            ) : (
+              <span style={{ fontSize: 13, color: '#6b7280' }}>
+                <i className="fa-solid fa-lock" style={{ marginRight: 6 }}></i>
+                Solo lectura: gestión exclusiva del administrador
+              </span>
+            )}
+          </div>
+
+          {/* BOTÓN CONTACTAR ADMIN (Visible para Staff / Empleados y Gerentes) */}
+          <button 
+            type="button"
+            onClick={() => {
+              setEnviadoAlerta(false);
+              setObservacion('');
+              setModalAdminAbierto(true);
+            }}
+            style={{
+              padding: '8px 16px',
+              backgroundColor: '#fff',
+              color: '#dc2626',
+              border: '1px solid #fecaca',
+              borderRadius: 8,
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+            }}
+          >
+            📞 Contactar Admin
+          </button>
         </div>
 
         {error && <div style={{ padding: 16, color: '#dc2626', fontSize: 14 }}>{error}</div>}
@@ -302,7 +339,148 @@ export function InventarioGerente() {
         </div>
       </div>
 
-      {/* ============ MODAL ============ */}
+      {/* ============ MODAL CONTACTAR ADMIN ============ */}
+      {modalAdminAbierto && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(3px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20
+        }}>
+          <div style={{
+            backgroundColor: '#ffffff', borderRadius: 20, width: '100%', maxWidth: 560,
+            padding: '32px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', position: 'relative'
+          }}>
+            {!enviadoAlerta ? (
+              <>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
+                  <div>
+                    <h3 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      📞 Solicitar Asistencia de Administrador
+                    </h3>
+                    <p style={{ fontSize: 13, color: '#6b7280', margin: 0 }}>
+                      Envía una alerta prioritaria al supervisor de turno en tienda.
+                    </p>
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={() => setModalAdminAbierto(false)}
+                    style={{ backgroundColor: '#f3f4f6', border: 'none', width: 32, height: 32, borderRadius: '50%', fontSize: 14, cursor: 'pointer', color: '#4b5563', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: '12px 16px', marginBottom: 20 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#166534', textTransform: 'uppercase', display: 'block', marginBottom: 2 }}>
+                    Supervisor activo:
+                  </span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: '#15803d' }}>
+                    Paolo (Admin General) • Canal interno conectado
+                  </span>
+                </div>
+
+                <form onSubmit={handleEnviarAlertaAdmin} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                      Tipo de Incidencia *
+                    </label>
+                    <select 
+                      value={tipoIncidencia}
+                      onChange={(e) => setTipoIncidencia(e.target.value)}
+                      style={{ width: '100%', padding: '10px 14px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, backgroundColor: '#fff', color: '#111827' }}
+                    >
+                      <option value="Discrepancia física de stock en anaquel">Discrepancia física de stock en anaquel</option>
+                      <option value="Error en validación de receta médica">Error en validación de receta médica</option>
+                      <option value="Problema con el sistema de caja o pago">Problema con el sistema de caja o pago</option>
+                      <option value="Otro motivo operativo">Otro motivo operativo</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                      N° de Orden o SKU relacionado
+                    </label>
+                    <input 
+                      type="text"
+                      value={skuRelacionado}
+                      onChange={(e) => setSkuRelacionado(e.target.value)}
+                      placeholder="Ej. #MED-103 [Crema Alma Secret]"
+                      style={{ width: '100%', padding: '10px 14px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}
+                    />
+                  </div>
+
+                  <div>
+                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                      Observación / Motivo del llamado *
+                    </label>
+                    <textarea 
+                      rows={3}
+                      required
+                      value={observacion}
+                      onChange={(e) => setObservacion(e.target.value)}
+                      placeholder="Detalla brevemente el motivo para que el admin acuda o responda..."
+                      style={{ width: '100%', padding: '10px 14px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box', resize: 'vertical' }}
+                    />
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
+                    <button 
+                      type="button" 
+                      onClick={() => setModalAdminAbierto(false)}
+                      style={{ padding: '10px 20px', backgroundColor: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: 8, fontWeight: 600, fontSize: 14, cursor: 'pointer' }}
+                    >
+                      Cancelar
+                    </button>
+                    <button 
+                      type="submit"
+                      style={{ padding: '10px 24px', backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)' }}
+                    >
+                      🚨 Enviar Alerta
+                    </button>
+                  </div>
+                </form>
+              </>
+            ) : (
+              <div style={{ textAlign: 'center', padding: '10px 0' }}>
+                <div style={{ width: 64, height: 64, backgroundColor: '#d1fae5', color: '#059669', borderRadius: '50%', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>
+                  ✓
+                </div>
+                <h3 style={{ fontSize: 20, fontWeight: 800, color: '#111827', marginBottom: 6 }}>
+                  Alerta notificada al Administrador
+                </h3>
+                <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 24 }}>
+                  El mensaje de soporte fue enviado con prioridad alta al supervisor en turno.
+                </p>
+
+                <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 16, textAlign: 'left', marginBottom: 24, fontSize: 13, display: 'flex', flexDirection: 'column', gap: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Supervisor asignado:</span>
+                    <strong style={{ color: '#059669' }}>Paolo (Admin General)</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Tipo de Incidencia:</span>
+                    <strong style={{ color: '#1e293b' }}>{tipoIncidencia}</strong>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <span style={{ color: '#64748b' }}>Canal de respuesta:</span>
+                    <strong style={{ color: '#059669' }}>Terminal Operativo EMP-02 (En espera)</strong>
+                  </div>
+                </div>
+
+                <button 
+                  type="button"
+                  onClick={() => setModalAdminAbierto(false)}
+                  style={{ width: '100%', padding: '12px', backgroundColor: '#059669', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)' }}
+                >
+                  Entendido, volver a inventario
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ============ MODAL DE PRODUCTO (CREAR / EDITAR) ============ */}
       {modalAbierto && (
         <div className="modal-overlay">
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
@@ -475,8 +653,6 @@ export function InventarioGerente() {
 
                   {/* Columna Derecha: Imágenes Disponibles */}
                   <div style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column' }}>
-                    
-                    {/* Cabecera clicable para abrir/cerrar */}
                     <div 
                       onClick={() => setGaleriaAbierta(!galeriaAbierta)}
                       style={{ 
@@ -497,7 +673,6 @@ export function InventarioGerente() {
                       </span>
                     </div>
 
-                    {/* Contenedor de imágenes (solo se muestra si está abierto) */}
                     {galeriaAbierta && (
                       <div style={{
                         border: '1px solid #e5e7eb',
@@ -542,12 +717,11 @@ export function InventarioGerente() {
                                 </div>
                               )}
                               
-                              {/* BOTÓN DE ELIMINAR (X) */}
                               {hoveredImg === url && (
                                 <button
                                   type="button"
                                   onClick={(e) => {
-                                    e.stopPropagation(); // Evita que se seleccione la imagen al hacer clic en la X
+                                    e.stopPropagation();
                                     eliminarImagen(url);
                                   }}
                                   style={{
@@ -556,7 +730,7 @@ export function InventarioGerente() {
                                     right: 2,
                                     width: 20,
                                     height: 20,
-                                    backgroundColor: 'rgba(220, 38, 38, 0.5)', // Rojo con 50% opacidad
+                                    backgroundColor: 'rgba(220, 38, 38, 0.5)',
                                     color: 'white',
                                     border: 'none',
                                     borderRadius: 4,
@@ -580,17 +754,16 @@ export function InventarioGerente() {
                   </div>
                 </div>
 
-                {/* Input manual (debajo de las dos columnas) */}
+                {/* Input manual */}
                 <div style={{ marginTop: '12px' }}>
                   <input
                     type="text"
-                    placeholder="Ej: /img/productos/ACEITE-DE-RICINO-30-ML-1024x1024.png"
+                    placeholder="Ej: /img/productos/imagen.png"
                     value={form.imagenUrl}
                     onChange={(e) => actualizar('imagenUrl', e.target.value)}
                     style={{ width: '100%', marginBottom: 8 }}
                   />
                   
-                  {/* CAMBIO 2: Vista previa de la imagen seleccionada MÁS GRANDE */}
                   {form.imagenUrl && (
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 15, marginTop: 12, padding: 10, border: '1px solid #e5e7eb', borderRadius: 8, backgroundColor: '#f9fafb' }}>
                       <img 

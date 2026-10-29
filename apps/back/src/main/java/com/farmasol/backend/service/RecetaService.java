@@ -8,19 +8,18 @@ import java.util.List;
 
 public interface RecetaService {
 
-    /** El cliente sube (o vuelve a subir) la foto/PDF de receta para una línea de su pedido. */
+    // Agrega esta línea para que la clase impl la reconozca:
+    RecetaResponse guardarRecetaTemporal(Long idCliente, Long idProducto, MultipartFile archivo);
+
     RecetaResponse subir(Long idCliente, Long idPedidoDetalle, MultipartFile archivo);
 
-    /** Recetas de un pedido: el propio cliente dueño, o cualquier personal. */
     List<RecetaResponse> listarDePedido(Long idPedido);
 
-    /** Bandeja de revisión para el personal. */
     List<RecetaResponse> listarPendientes();
 
     RecetaResponse aprobar(Long idPersonal, Long idReceta);
 
     RecetaResponse rechazar(Long idPersonal, Long idReceta, String motivo);
 
-    /** Devuelve el archivo si quien pide es el cliente dueño del pedido o personal. */
     ArchivoRecetaDTO obtenerArchivo(Long idReceta);
 }

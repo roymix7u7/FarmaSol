@@ -29,11 +29,11 @@ public class Receta {
     @Column(name = "id_receta")
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "id_pedido_detalle", nullable = false)
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(name = "id_pedido_detalle", nullable = true)
     private PedidoDetalle pedidoDetalle;
 
-    /** Ruta relativa dentro de farmasol.uploads.dir, ej. "recetas/&lt;uuid&gt;.jpg". */
+    /** Ruta relativa dentro de farmasol.uploads.dir, ej. "recetas/<uuid>.jpg". */
     @Column(name = "archivo_ruta", nullable = false, length = 255)
     private String archivoRuta;
 

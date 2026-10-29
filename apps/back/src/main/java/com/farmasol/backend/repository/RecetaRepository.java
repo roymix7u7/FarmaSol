@@ -16,4 +16,6 @@ public interface RecetaRepository extends JpaRepository<Receta, Long> {
     List<Receta> findByPedidoDetalle_Pedido_IdOrderByFechaSubidaDesc(Long idPedido);
 
     List<Receta> findByEstadoOrderByFechaSubidaAsc(EstadoReceta estado);
+    
+    List<Receta> findByPedidoDetalleIsNull();
 }

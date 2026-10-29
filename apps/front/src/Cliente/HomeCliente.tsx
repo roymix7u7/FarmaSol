@@ -53,7 +53,7 @@ export function HomeCliente() {
   }
 
   return (
-    <div>
+    <div style={{ width: '100%', padding: '0 1px', boxSizing: 'border-box' }}>
       {/* Banner */}
       <section
         style={{
@@ -62,6 +62,8 @@ export function HomeCliente() {
           padding: '48px 32px',
           textAlign: 'center',
           marginBottom: 32,
+          width: '100%',
+          boxSizing: 'border-box',
         }}
       >
         <h1 style={{ fontSize: 30, marginBottom: 10 }}>Tu farmacia de confianza, a un clic</h1>
@@ -100,7 +102,15 @@ export function HomeCliente() {
           No hay productos disponibles por ahora.
         </p>
       ) : (
-        <div className="grilla-productos columnas-5">
+        <div 
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
+            gap: 20,
+            width: '100%',
+            marginBottom: 40,
+          }}
+        >
           {productos.map((prod) => {
             const stock = estadoStock(prod.stock);
             const tieneDescuento = prod.descuentoUnitario > 0;
