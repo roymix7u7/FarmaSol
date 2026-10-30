@@ -12,6 +12,7 @@ interface ProductoForm {
   precio: string;
   stock: string;
   idCategoria: string;
+  subcategoria: string;
   imagenUrl: string;
   marca: string;
   presentacion: string;
@@ -25,6 +26,7 @@ const FORM_VACIO: ProductoForm = {
   precio: '',
   stock: '',
   idCategoria: '',
+  subcategoria: '',
   imagenUrl: '',
   marca: '',
   presentacion: '',
@@ -38,6 +40,16 @@ export function InventarioGerente() {
   const puedeEditar = user?.rol === 'GERENTE';
 
   const [categorias, setCategorias] = useState<Categoria[]>([]);
+  
+  // Extrae automáticamente las subcategorías únicas que ya están guardadas en los productos de la BD
+  const subcategoriasPersonalizadas = Array.from(
+    new Set(productos.map((p) => p.subcategoria).filter(Boolean))
+  ) as string[];
+
+  // Estados para manejar el modo de agregar nueva subcategoría desde el select
+  const [modoNuevaSubcat, setModoNuevaSubcat] = useState(false);
+  const [tempNuevaSubcat, setTempNuevaSubcat] = useState('');
+
   const [busqueda, setBusqueda] = useState('');
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
@@ -122,6 +134,8 @@ export function InventarioGerente() {
 
   function abrirCrear() {
     setForm(FORM_VACIO);
+    setModoNuevaSubcat(false);
+    setTempNuevaSubcat('');
     setErrorForm('');
     setErrorImagen('');
     setModalAbierto(true);
@@ -135,12 +149,15 @@ export function InventarioGerente() {
       precio: String(p.precio),
       stock: String(p.stock),
       idCategoria: String(p.idCategoria),
+      subcategoria: p.subcategoria || "",
       imagenUrl: p.imagenUrl || '',
       marca: p.marca || '',
       presentacion: p.presentacion || '',
       registroSanitario: p.registroSanitario || '',
       requiereReceta: p.requiereReceta,
     });
+    setModoNuevaSubcat(false);
+    setTempNuevaSubcat('');
     setErrorForm('');
     setErrorImagen('');
     setModalAbierto(true);
@@ -199,6 +216,7 @@ export function InventarioGerente() {
       precio: Number(form.precio),
       stock: Number(form.stock),
       idCategoria: Number(form.idCategoria),
+      subcategoria: form.subcategoria.trim() || null,
       imagenUrl: form.imagenUrl.trim() || null,
       marca: form.marca.trim() || null,
       presentacion: form.presentacion.trim() || null,
@@ -234,7 +252,6 @@ export function InventarioGerente() {
 
   const handleEnviarAlertaAdmin = (e: React.FormEvent) => {
     e.preventDefault();
-    // Aquí puedes realizar la llamada a tu API para registrar la alerta si lo requieres
     setEnviadoAlerta(true);
   };
 
@@ -262,7 +279,6 @@ export function InventarioGerente() {
             )}
           </div>
 
-          {/* BOTÓN CONTACTAR ADMIN (Visible para Staff / Empleados y Gerentes) */}
           <button 
             type="button"
             onClick={() => {
@@ -300,6 +316,7 @@ export function InventarioGerente() {
                 <th>ID</th>
                 <th>Medicamento</th>
                 <th>Categoría</th>
+                <th>Subcategoría</th>
                 <th>Stock</th>
                 <th>Precio</th>
                 <th>Estado</th>
@@ -314,6 +331,9 @@ export function InventarioGerente() {
                     <td>#{String(prod.id).padStart(3, '0')}</td>
                     <td>{prod.nombre}</td>
                     <td>{prod.nombreCategoria || 'Sin categoría'}</td>
+                    <td style={{ color: prod.subcategoria ? '#059669' : '#9ca3af', fontWeight: prod.subcategoria ? 600 : 400 }}>
+                      {prod.subcategoria || '—'}
+                    </td>
                     <td>{prod.stock} und.</td>
                     <td>S/ {prod.precioFinal.toFixed(2)}</td>
                     <td>
@@ -549,6 +569,96 @@ export function InventarioGerente() {
                   value={form.marca}
                   onChange={(e) => actualizar('marca', e.target.value)}
                 />
+              </div>
+
+              {/* Selector con opción integrada "Agregar nueva subcategoría" al final */}
+              <div className="form-field">
+                <label>Subcategoría *</label>
+                
+                {!modoNuevaSubcat ? (
+                  <select
+                    value={form.subcategoria}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (val === '__NUEVA__') {
+                        setModoNuevaSubcat(true);
+                        setTempNuevaSubcat('');
+                      } else {
+                        actualizar('subcategoria', val);
+                      }
+                    }}
+                    required
+                    style={{ width: '100%', padding: '10px 14px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', backgroundColor: '#fff' }}
+                  >
+                    <option value="">— Seleccionar subcategoría —</option>
+                    {Array.from(new Set(["Pañales", "Toallitas Húmedas", "Analgésicos", "Antibióticos", "Antiinflamatorios", "Pasta Dental", ...subcategoriasPersonalizadas])).map((sub) => (
+                      <option key={sub} value={sub}>
+                        {sub}
+                      </option>
+                    ))}
+                    <option value="__NUEVA__" style={{ fontWeight: 600, color: '#059669' }}>
+                      + Agregar nueva subcategoría...
+                    </option>
+                  </select>
+                ) : (
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input
+                      type="text"
+                      placeholder="Escribe el nombre de la nueva subcategoría..."
+                      value={tempNuevaSubcat}
+                      onChange={(e) => setTempNuevaSubcat(e.target.value)}
+                      style={{ flex: 1, padding: '10px 14px', border: '1px solid #059669', borderRadius: '8px', fontSize: '14px', outline: 'none' }}
+                      autoFocus
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (tempNuevaSubcat.trim()) {
+                          actualizar('subcategoria', tempNuevaSubcat.trim());
+                          setModoNuevaSubcat(false);
+                          setTempNuevaSubcat('');
+                        } else {
+                          alert('Por favor ingresa un nombre válido para la subcategoría.');
+                        }
+                      }}
+                      style={{
+                        padding: '10px 16px',
+                        backgroundColor: '#059669',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        fontWeight: 600,
+                        fontSize: '13px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      Confirmar
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setModoNuevaSubcat(false);
+                        setTempNuevaSubcat('');
+                      }}
+                      style={{
+                        padding: '10px 12px',
+                        backgroundColor: '#f3f4f6',
+                        color: '#374151',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '8px',
+                        fontSize: '13px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                )}
+                {form.subcategoria && !modoNuevaSubcat && (
+                  <span style={{ fontSize: '11.5px', color: '#059669', marginTop: '4px', display: 'block' }}>
+                    Seleccionado: <strong>{form.subcategoria}</strong>
+                  </span>
+                )}
               </div>
 
               <div className="form-field">

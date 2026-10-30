@@ -65,7 +65,7 @@ export function HomeGerente() {
               className={`sidebar-item ${vistaActiva === 'inventario' ? 'active' : ''}`}
               onClick={() => setVistaActiva('inventario')}
             >
-              <i className="fa-solid fa-boxes-stacked"></i> Inventario / CRUD
+              <i className="fa-solid fa-boxes-stacked"></i> Inventario
             </button>
             <button
               className={`sidebar-item ${vistaActiva === 'pedidos' ? 'active' : ''}`}

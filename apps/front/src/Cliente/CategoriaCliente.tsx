@@ -62,9 +62,9 @@ export function CategoriaCliente() {
   // useCallback para que el efecto de FiltrosProductos no se dispare de más.
   const recibirFiltrados = useCallback((lista: Producto[]) => setFiltrados(lista), []);
 
-  // Dentro de una categoría, filtrar otra vez por categoría solo sirve si la
-  // categoría tiene hijas: ahí las subcategorías son opciones útiles.
-  const tieneSubcategorias = (categoria?.subcategorias?.length ?? 0) > 0;
+  const tieneSubcategorias = 
+    (categoria?.subcategorias?.length ?? 0) > 0 || 
+    productos.some((p) => p.subcategoria);
 
   return (
     <div>
@@ -116,6 +116,7 @@ export function CategoriaCliente() {
             productos={productos}
             onFiltrar={recibirFiltrados}
             mostrarCategorias={tieneSubcategorias}
+            subcategoriasOficiales={categoria?.subcategorias}
           />
 
           {filtrados.length === 0 ? (

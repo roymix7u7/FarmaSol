@@ -22,6 +22,7 @@ public class ProductoResponse {
     private Long idPromocionAplicada;
     private Integer stock;
     private Long idCategoria;
+    private String subcategoria;
     private String nombreCategoria;
     private String imagenUrl;
     private Boolean requiereReceta;

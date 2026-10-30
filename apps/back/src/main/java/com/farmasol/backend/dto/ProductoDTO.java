@@ -39,6 +39,8 @@ public class ProductoDTO {
     @NotNull(message = "La categoría es obligatoria")
     private Long idCategoria;
 
+    private  String subcategoria;
+    
     @Size(max = 255)
     private String imagenUrl;
 

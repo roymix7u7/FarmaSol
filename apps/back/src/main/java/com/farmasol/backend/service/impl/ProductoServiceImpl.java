@@ -54,7 +54,7 @@ public class ProductoServiceImpl implements ProductoService {
         return toResponse(buscar(id));
     }
 
-    @Override
+ @Override
     @Transactional
     public ProductoResponse guardar(ProductoDTO dto) {
         Producto producto = Producto.builder()
@@ -63,6 +63,7 @@ public class ProductoServiceImpl implements ProductoService {
                 .precio(dto.getPrecio())
                 .stock(dto.getStock())
                 .categoria(buscarCategoria(dto.getIdCategoria()))
+                .subcategoria(dto.getSubcategoria()) // <--- ¡Añadido aquí!
                 .imagenUrl(dto.getImagenUrl())
                 .requiereReceta(dto.getRequiereReceta() != null ? dto.getRequiereReceta() : false)
                 .marca(dto.getMarca())
@@ -82,6 +83,7 @@ public class ProductoServiceImpl implements ProductoService {
         producto.setPrecio(dto.getPrecio());
         producto.setStock(dto.getStock());
         producto.setCategoria(buscarCategoria(dto.getIdCategoria()));
+        producto.setSubcategoria(dto.getSubcategoria()); // <--- ¡Añadido aquí para las ediciones!
         producto.setImagenUrl(dto.getImagenUrl());
         producto.setRequiereReceta(dto.getRequiereReceta() != null ? dto.getRequiereReceta() : false);
         producto.setMarca(dto.getMarca());
@@ -112,7 +114,7 @@ public class ProductoServiceImpl implements ProductoService {
         return toResponse(p, precioService.calcular(p));
     }
 
-    private ProductoResponse toResponse(Producto p, PrecioCalculadoDTO precio) {
+   private ProductoResponse toResponse(Producto p, PrecioCalculadoDTO precio) {
         return ProductoResponse.builder()
                 .id(p.getId())
                 .nombre(p.getNombre())
@@ -123,6 +125,7 @@ public class ProductoServiceImpl implements ProductoService {
                 .idPromocionAplicada(precio.getIdPromocionAplicada())
                 .stock(p.getStock())
                 .idCategoria(p.getCategoria().getId())
+                .subcategoria(p.getSubcategoria()) // <--- ¡Asegúrate de incluir esta línea también!
                 .nombreCategoria(p.getCategoria().getNombre())
                 .imagenUrl(p.getImagenUrl())
                 .requiereReceta(p.getRequiereReceta())

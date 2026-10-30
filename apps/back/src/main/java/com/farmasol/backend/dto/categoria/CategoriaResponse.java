@@ -17,6 +17,7 @@ public class CategoriaResponse {
     private String nombre;
     private String slug;
     private Long idCategoriaPadre;
+    private String subcategoria;
     private String nombrePadre;
     private String descripcion;
     private String imagenUrl;
