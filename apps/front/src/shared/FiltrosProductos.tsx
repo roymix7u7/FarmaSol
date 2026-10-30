@@ -9,15 +9,18 @@ export interface EstadoFiltros {
   conReceta: boolean;
   marcas: string[];
   categorias: string[];
+  subcategorias: string[];
 }
 
 interface Props {
-  /** Lista completa, sin filtrar. De aquí salen las marcas y el rango de precios. */
+  /** Lista completa, sin filtrar. De aquí salen las marcas, subcategorías y el rango de precios. */
   productos: Producto[];
   /** Se llama con la lista ya filtrada cada vez que cambia algún filtro. */
   onFiltrar: (filtrados: Producto[]) => void;
   /** El filtro por categoría solo tiene sentido fuera de una página de categoría. */
   mostrarCategorias?: boolean;
+  /** Subcategorías oficiales del árbol de la categoría actual */
+  subcategoriasOficiales?: { nombre: string }[];
 }
 
 /** Redondea hacia abajo/arriba a la decena, para que el slider tenga topes limpios. */
@@ -28,14 +31,13 @@ function techoDecena(n: number) {
   return Math.ceil(n / 10) * 10;
 }
 
-export function FiltrosProductos({ productos, onFiltrar, mostrarCategorias = false }: Props) {
+export function FiltrosProductos({ productos, onFiltrar, mostrarCategorias = false, subcategoriasOficiales }: Props) {
   // Los topes del slider se derivan del catálogo real, no son fijos.
   const [limiteMin, limiteMax] = useMemo(() => {
     if (productos.length === 0) return [0, 100];
     const precios = productos.map((p) => p.precioFinal);
     const min = pisoDecena(Math.min(...precios));
     const max = techoDecena(Math.max(...precios));
-    // Si todos cuestan lo mismo, damos margen para que el slider sea usable.
     return min === max ? [min, max + 10] : [min, max];
   }, [productos]);
 
@@ -55,41 +57,71 @@ export function FiltrosProductos({ productos, onFiltrar, mostrarCategorias = fal
     return [...conteo.entries()].sort((a, b) => a[0].localeCompare(b[0], 'es'));
   }, [productos]);
 
+  // Extraer subcategorías combinando los productos y las oficiales del árbol
+  const subcategoriasDisponibles = useMemo(() => {
+    const conteo = new Map<string, number>();
+    
+    // 1. Contar desde los productos si traen el campo lleno
+    for (const p of productos) {
+      const sub = p.subcategoria || (p as any).subCategoria || (p as any).nombreSubcategoria || (p as any).subcategoriaNombre;
+      if (sub) {
+        conteo.set(sub, (conteo.get(sub) ?? 0) + 1);
+      }
+    }
+
+    // 2. Garantizar que las subcategorías oficiales de la categoría aparezcan en el sidebar
+    if (subcategoriasOficiales) {
+      for (const subObj of subcategoriasOficiales) {
+        if (!conteo.has(subObj.nombre)) {
+          const matchean = productos.filter(p => 
+            p.subcategoria === subObj.nombre || (p as any).subCategoria === subObj.nombre
+          ).length;
+          conteo.set(subObj.nombre, matchean);
+        }
+      }
+    }
+
+    return [...conteo.entries()].sort((a, b) => a[0].localeCompare(b[0], 'es'));
+  }, [productos, subcategoriasOficiales]);
+
   const [precioMin, setPrecioMin] = useState(limiteMin);
   const [precioMax, setPrecioMax] = useState(limiteMax);
   const [ventaLibre, setVentaLibre] = useState(false);
   const [conReceta, setConReceta] = useState(false);
   const [marcas, setMarcas] = useState<string[]>([]);
   const [categorias, setCategorias] = useState<string[]>([]);
+  const [subcategorias, setSubcategorias] = useState<string[]>([]);
   const [buscarMarca, setBuscarMarca] = useState('');
   const [abiertoEnMovil, setAbiertoEnMovil] = useState(false);
 
-  // Al cambiar de categoría o de búsqueda llega otro catálogo: el rango se reajusta.
+  // Al cambiar de categoría o de búsqueda llega otro catálogo: el rango y filtros se reajustan.
   useEffect(() => {
     setPrecioMin(limiteMin);
     setPrecioMax(limiteMax);
     setMarcas([]);
     setCategorias([]);
+    setSubcategorias([]);
   }, [limiteMin, limiteMax]);
 
   const filtrados = useMemo(() => {
     return productos.filter((p) => {
       if (p.precioFinal < precioMin || p.precioFinal > precioMax) return false;
-      // Marcar las dos condiciones de venta equivale a no filtrar por ellas.
       if (ventaLibre !== conReceta) {
         if (ventaLibre && p.requiereReceta) return false;
         if (conReceta && !p.requiereReceta) return false;
       }
       if (marcas.length > 0 && (!p.marca || !marcas.includes(p.marca))) return false;
-      if (categorias.length > 0 && !categorias.includes(p.nombreCategoria)) return false;
+      if (categorias.length > 0 && (!p.nombreCategoria || !categorias.includes(p.nombreCategoria))) return false;
+      
+      const subProd = p.subcategoria || (p as any).subCategoria || (p as any).nombreSubcategoria || (p as any).subcategoriaNombre;
+      if (subcategorias.length > 0 && (!subProd || !subcategorias.includes(subProd))) return false;
+
       return true;
     });
-  }, [productos, precioMin, precioMax, ventaLibre, conReceta, marcas, categorias]);
+  }, [productos, precioMin, precioMax, ventaLibre, conReceta, marcas, categorias, subcategorias]);
 
   useEffect(() => {
     onFiltrar(filtrados);
-    // onFiltrar se omite a propósito: si el padre la redefine en cada render,
-    // incluirla haría que este efecto se dispare en bucle.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filtrados]);
 
@@ -99,7 +131,8 @@ export function FiltrosProductos({ productos, onFiltrar, mostrarCategorias = fal
     ventaLibre ||
     conReceta ||
     marcas.length > 0 ||
-    categorias.length > 0;
+    categorias.length > 0 ||
+    subcategorias.length > 0;
 
   function limpiar() {
     setPrecioMin(limiteMin);
@@ -108,6 +141,7 @@ export function FiltrosProductos({ productos, onFiltrar, mostrarCategorias = fal
     setConReceta(false);
     setMarcas([]);
     setCategorias([]);
+    setSubcategorias([]);
     setBuscarMarca('');
   }
 
@@ -131,8 +165,6 @@ export function FiltrosProductos({ productos, onFiltrar, mostrarCategorias = fal
         {hayFiltros && ` (${filtrados.length} de ${productos.length})`}
       </button>
 
-      {/* El plegado es puramente CSS: leer window.innerWidth aqui no reaccionaria
-          al redimensionar la ventana. */}
       <aside className={`filtros${abiertoEnMovil ? '' : ' esta-plegado'}`}>
         <div className="filtros-cabecera">
           <h2 className="filtros-titulo">Filtros</h2>
@@ -143,6 +175,24 @@ export function FiltrosProductos({ productos, onFiltrar, mostrarCategorias = fal
         <p className="filtros-rango-etiqueta">
           {filtrados.length} de {productos.length} productos
         </p>
+
+        {/* Bloque interactivo de Subcategorías en la barra lateral */}
+        {subcategoriasDisponibles.length > 0 && (
+          <div className="filtros-grupo">
+            <h3 className="filtros-grupo-titulo">Subcategorías</h3>
+            {subcategoriasDisponibles.map(([nombre, cuantos]) => (
+              <label key={nombre} className="filtros-opcion" title={nombre}>
+                <input
+                  type="checkbox"
+                  checked={subcategorias.includes(nombre)}
+                  onChange={() => alternar(subcategorias, setSubcategorias, nombre)}
+                />
+                <span>{nombre}</span>
+                <span className="filtros-conteo">{cuantos}</span>
+              </label>
+            ))}
+          </div>
+        )}
 
         {mostrarCategorias && categoriasDisponibles.length > 1 && (
           <div className="filtros-grupo">
@@ -191,7 +241,6 @@ export function FiltrosProductos({ productos, onFiltrar, mostrarCategorias = fal
             step={1}
             value={precioMin}
             aria-label="Precio mínimo"
-            // Los topes no se cruzan: el mínimo empuja al máximo y viceversa.
             onChange={(e) => setPrecioMin(Math.min(Number(e.target.value), precioMax))}
           />
           <span className="filtros-rango-etiqueta">Hasta</span>

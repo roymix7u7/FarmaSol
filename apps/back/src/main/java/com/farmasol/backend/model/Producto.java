@@ -41,6 +41,17 @@ public class Producto {
     @JoinColumn(name = "id_categoria", nullable = false)
     private Categoria categoria;
 
+    @Column(name = "subcategoria")
+    private String subcategoria;
+
+    public String getSubcategoria() {
+    return subcategoria;
+    }
+
+    public void setSubcategoria(String subcategoria) {
+    this.subcategoria = subcategoria;
+    }
+
     @Column(name = "imagen_url", length = 255)
     private String imagenUrl;
 

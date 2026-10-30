@@ -28,6 +28,7 @@ export interface Categoria {
   nombre: string;
   slug: string;
   idCategoriaPadre: number | null;
+  subcateogria: String;
   nombrePadre: string | null;
   descripcion: string | null;
   imagenUrl: string | null;
@@ -47,6 +48,7 @@ export interface Producto {
   stock: number;
   idCategoria: number;
   nombreCategoria: string;
+  subcategoria: string;
   imagenUrl: string | null;
   requiereReceta: boolean;
   marca: string | null;

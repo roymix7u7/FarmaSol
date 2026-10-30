@@ -25,6 +25,8 @@ public class CategoriaRequest {
     /** Nulo para categoría raíz. */
     private Long idCategoriaPadre;
 
+    private String subcategoria;
+
     @Size(max = 255)
     private String descripcion;
 
