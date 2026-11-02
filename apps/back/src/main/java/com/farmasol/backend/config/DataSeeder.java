@@ -132,7 +132,7 @@ public class DataSeeder implements CommandLineRunner {
                 if (linea.isBlank()) continue;
                 String[] d = linea.split(separador, -1);
                 // Una fila mal escrita se avisa y se salta, sin perder el resto.
-                if (d.length < 9) {
+                if (d.length < 10) {
                     log.warn("productos.csv fila {}: tiene {} columnas y se esperaban 9, se omite", numero, d.length);
                     continue;
                 }
@@ -149,6 +149,7 @@ public class DataSeeder implements CommandLineRunner {
                     String presentacion = d[5].trim();
                     String imagenUrl = d[7].trim();
                     String registro = d[8].trim();
+                    String subcategoria = d[9].trim(); // <-- AGREGAR ESTA LÍNEA
 
                     Producto anterior = porFoto.get(claveFoto(imagenUrl));
                     boolean ponerAlDia = anterior != null && sinEditar(anterior);
@@ -163,6 +164,7 @@ public class DataSeeder implements CommandLineRunner {
                     p.setRequiereReceta(Boolean.parseBoolean(d[6].trim()));
                     p.setImagenUrl(imagenUrl);
                     p.setRegistroSanitario(registro.isEmpty() ? "N/A" : registro);
+                    p.setSubcategoria(subcategoria.isEmpty() ? null : subcategoria);
                     productoRepository.save(p);
                     if (ponerAlDia) {
                         porFoto.remove(claveFoto(imagenUrl));

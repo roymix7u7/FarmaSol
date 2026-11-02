@@ -79,8 +79,8 @@ export const pedidosAdminApi = {
     return api.get<PedidoCompleto>(`/pedidos/${id}`).then((r) => r.data);
   },
 
-  cambiarEstado(id: number, nuevoEstado: EstadoPedido) {
-    return api.patch<PedidoCompleto>(`/pedidos/${id}/estado`, { nuevoEstado }).then((r) => r.data);
+  cambiarEstado(id: number, nuevoEstado: EstadoPedido, motivo?: string) {
+    return api.patch<PedidoCompleto>(`/pedidos/${id}/estado`, { nuevoEstado, motivo }).then((r) => r.data);
   },
 };
 
