@@ -1,6 +1,7 @@
 package com.farmasol.backend.controller;
 
 import com.farmasol.backend.dto.pedido.CambiarEstadoRequest;
+import com.farmasol.backend.dto.pedido.CancelarPedidoRequest;
 import com.farmasol.backend.dto.pedido.CheckoutRequest;
 import com.farmasol.backend.dto.pedido.PedidoResponse;
 import com.farmasol.backend.dto.pedido.PedidoResumenResponse;
@@ -9,9 +10,9 @@ import com.farmasol.backend.security.SecurityUtils;
 import com.farmasol.backend.service.PedidoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders; // ✅ Correto (Spring Framework)
+import org.springframework.http.HttpHeaders; 
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;   // ✅ Import necessário para MediaType
+import org.springframework.http.MediaType; 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -44,6 +45,16 @@ public class PedidoController {
         return ResponseEntity.ok(pedidoService.obtenerDeCliente(SecurityUtils.getUidActual(), id));
     }
 
+    /** Permite al cliente cancelar su propio pedido indicando un motivo */
+    @PatchMapping("/mios/{id}/cancelar")
+    @PreAuthorize("hasRole('CLIENTE')")
+    public ResponseEntity<PedidoResponse> cancelarPedidoCliente(
+            @PathVariable Long id,
+            @Valid @RequestBody CancelarPedidoRequest request) {
+        return ResponseEntity.ok(pedidoService.cancelarPedidoCliente(
+                SecurityUtils.getUidActual(), id, request.getMotivo()));
+    }
+
     @GetMapping
     @PreAuthorize("hasAnyRole('GERENTE','EMPLEADO')")
     public ResponseEntity<List<PedidoResumenResponse>> listar(
@@ -68,7 +79,6 @@ public class PedidoController {
     @GetMapping("/{id}/comprobante")
     public ResponseEntity<byte[]> descargarComprobante(@PathVariable Long id) {
         try {
-            // Lógica para gerar ou recuperar o PDF do pedido
             byte[] pdfBytes = pedidoService.generarComprobantePdf(id);
 
             HttpHeaders headers = new HttpHeaders();

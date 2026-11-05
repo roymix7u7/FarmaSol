@@ -591,7 +591,16 @@ export function InventarioGerente() {
                     style={{ width: '100%', padding: '10px 14px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '14px', backgroundColor: '#fff' }}
                   >
                     <option value="">— Seleccionar subcategoría —</option>
-                    {Array.from(new Set(["Pañales", "Toallitas Húmedas", "Analgésicos", "Antibióticos", "Antiinflamatorios", "Pasta Dental", ...subcategoriasPersonalizadas])).map((sub) => (
+                    {Array.from(new Set([
+                      "Pañales", 
+                      "Toallitas Húmedas", 
+                      "Analgésicos", 
+                      "Antibióticos", 
+                      "Antiinflamatorios", 
+                      "Pasta Dental", 
+                      ...subcategoriasPersonalizadas,
+                      ...(form.subcategoria ? [form.subcategoria] : []) // <--- Solución: Incluye temporalmente la subcategoría nueva en las opciones
+                    ])).map((sub) => (
                       <option key={sub} value={sub}>
                         {sub}
                       </option>

@@ -110,6 +110,10 @@ public class Pedido {
     @Column(length = 255)
     private String notas;
 
+    /** Motivo ingresado por el cliente o personal en caso de cancelación del pedido. */
+    @Column(name = "motivo_cancelacion", length = 255)
+    private String motivoCancelacion;
+    
     @OneToMany(mappedBy = "pedido", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<PedidoDetalle> detalles = new ArrayList<>();
