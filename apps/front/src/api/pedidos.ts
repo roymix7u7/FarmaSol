@@ -60,13 +60,16 @@ export interface PedidoCompleto {
 }
 
 export const pedidosApi = {
-  misPedidos() {
-    return api.get<PedidoResumen[]>('/pedidos/mios').then((r) => r.data);
+ async misPedidos() {
+    const response = await api.get('/pedidos/mios');
+    return response.data;
   },
 
-  miPedido(id: number) {
-    return api.get<PedidoCompleto>(`/pedidos/mios/${id}`).then((r) => r.data);
-  },
+  // Añade esta función para la cancelación:
+  async cancelarPedido(idPedido: number, motivo: string) {
+    const response = await api.patch(`/pedidos/mios/${idPedido}/cancelar`, { motivo });
+    return response.data;
+  }
 };
 
 /** Operaciones del panel de gestión (requieren rol GERENTE o EMPLEADO). */
@@ -79,8 +82,8 @@ export const pedidosAdminApi = {
     return api.get<PedidoCompleto>(`/pedidos/${id}`).then((r) => r.data);
   },
 
-  cambiarEstado(id: number, nuevoEstado: EstadoPedido) {
-    return api.patch<PedidoCompleto>(`/pedidos/${id}/estado`, { nuevoEstado }).then((r) => r.data);
+  cambiarEstado(id: number, nuevoEstado: EstadoPedido, motivo?: string) {
+    return api.patch<PedidoCompleto>(`/pedidos/${id}/estado`, { nuevoEstado, motivo }).then((r) => r.data);
   },
 };
 

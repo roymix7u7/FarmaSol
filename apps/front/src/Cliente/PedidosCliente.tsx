@@ -1,7 +1,39 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { pedidosApi, type PedidoCompleto } from '../api/pedidos';
+import { pedidosApi } from '../api/pedidos';
 import { api, mensajeDeError } from '../api/client';
+
+export interface PedidoDetalle {
+  id?: number;
+  idProducto?: number;
+  nombreProducto: string;
+  cantidad: number;
+  precioUnitario?: number;
+  subtotal: number;
+  idRecetaVigente?: number;
+}
+
+export interface PedidoCompleto {
+  id: number;
+  codigoPedido: string;
+  estado: string;
+  tipoEntrega?: string;
+  requiereReceta?: boolean;
+  subtotal?: number;
+  descuentoTotal?: number;
+  costoEnvio?: number;
+  total: number;
+  fechaPedido: string;
+  fechaConfirmacion?: string | null;
+  fechaEntrega?: string | null;
+  notas?: string | null;
+  motivoCancelacion?: string | null;
+  detalles?: PedidoDetalle[];
+  envioDireccion?: string | null;
+  envioDistrito?: string | null;
+  envioReferencia?: string | null;
+  recojoSede?: string | null;
+}
 
 export function PedidosCliente() {
   const navigate = useNavigate();
@@ -10,6 +42,21 @@ export function PedidosCliente() {
   const [error, setError] = useState('');
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState<PedidoCompleto | null>(null);
 
+  // Estados para el flujo de cancelación de pedido con motivo
+  const [modalCancelarAbierto, setModalCancelarAbierto] = useState(false);
+  const [pedidoACancelar, setPedidoACancelar] = useState<PedidoCompleto | null>(null);
+  const [motivoCancelacion, setMotivoCancelacion] = useState('');
+  const [cancelando, setCancelando] = useState(false);
+  const [errorCancelacion, setErrorCancelacion] = useState('');
+
+  const motivosPredefinidos = [
+    'Me equivoqué de productos',
+    'Encontré un precio mejor en otro lado',
+    'Demora en la confirmación o entrega',
+    'Ya no necesito los medicamentos',
+    'Otro motivo'
+  ];
+
   useEffect(() => {
     cargarPedidos();
   }, []);
@@ -17,7 +64,7 @@ export function PedidosCliente() {
   async function cargarPedidos() {
     try {
       const data = await pedidosApi.misPedidos();
-      setPedidos(data as any || []);
+      setPedidos((data as unknown as PedidoCompleto[]) || []);
     } catch (err) {
       setError(mensajeDeError(err, 'No se pudieron cargar tus pedidos'));
     } finally {
@@ -25,7 +72,7 @@ export function PedidosCliente() {
     }
   }
 
- async function descargarPdf(idPedido: number, codigo: string) {
+  async function descargarPdf(idPedido: number, codigo: string) {
     try {
       const response = await api.get(`/pedidos/${idPedido}/comprobante`, { responseType: 'blob' });
       const blob = new Blob([response.data], { type: 'application/pdf' });
@@ -40,9 +87,8 @@ export function PedidosCliente() {
       alert('No se pudo descargar el comprobante en PDF');
     }
   }
-  
 
-async function verReceta(pedido: PedidoCompleto) {
+  async function verReceta(pedido: PedidoCompleto) {
     try {
       let recetaId = pedido.detalles?.find(d => d.idRecetaVigente)?.idRecetaVigente;
 
@@ -65,15 +111,41 @@ async function verReceta(pedido: PedidoCompleto) {
         return;
       }
 
-      // Detectamos el tipo real que responde el backend (image/jpeg o application/pdf)
-      const contentType = response.headers['content-type']  as string|| 'image/jpeg';
-
+      const contentType = (response.headers['content-type'] as string) || 'image/jpeg';
       const blob = new Blob([response.data], { type: contentType });
       const url = window.URL.createObjectURL(blob);
-      window.open(url, '_blank'); // Se abrirá correctamente como imagen en una nueva pestaña
+      window.open(url, '_blank');
     } catch (err) {
       console.error("Error al abrir la receta:", err);
       alert('No se pudo cargar el archivo de la receta médica desde el servidor.');
+    }
+  }
+
+ async function confirmarCancelacion(e: React.FormEvent) {
+    e.preventDefault();
+    if (!pedidoACancelar || !motivoCancelacion.trim()) {
+      setErrorCancelacion('Por favor selecciona o escribe un motivo de cancelación.');
+      return;
+    }
+
+    setCancelando(true);
+    setErrorCancelacion('');
+    try {
+      // ✅ Solución: Ruta limpia sin duplicar el prefijo /api/
+      await api.patch(`/pedidos/mios/${pedidoACancelar.id}/cancelar`, {
+        motivo: motivoCancelacion.trim()
+      });
+
+      alert('Tu pedido ha sido cancelado exitosamente.');
+      setModalCancelarAbierto(false);
+      setPedidoACancelar(null);
+      setMotivoCancelacion('');
+      setPedidoSeleccionado(null);
+      await cargarPedidos();
+    } catch (err) {
+      setErrorCancelacion(mensajeDeError(err, 'No se pudo cancelar el pedido.'));
+    } finally {
+      setCancelando(false);
     }
   }
 
@@ -183,7 +255,20 @@ async function verReceta(pedido: PedidoCompleto) {
                   </div>
 
                   {/* Pie de tarjeta */}
-                  <div style={{ padding: '14px 24px', background: '#fdfdfd', borderTop: '1px solid #f3f4f6', display: 'flex', justifyContent: 'flex-end' }}>
+                  <div style={{ padding: '14px 24px', background: '#fdfdfd', borderTop: '1px solid #f3f4f6', display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+                    {p.estado === 'PENDIENTE' && (
+                      <button
+                        onClick={() => {
+                          setPedidoACancelar(p);
+                          setMotivoCancelacion('');
+                          setErrorCancelacion('');
+                          setModalCancelarAbierto(true);
+                        }}
+                        style={{ padding: '9px 18px', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
+                      >
+                        Cancelar pedido
+                      </button>
+                    )}
                     <button
                       onClick={() => setPedidoSeleccionado(p)}
                       style={{ padding: '9px 22px', background: '#059669', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: 'pointer', boxShadow: '0 2px 8px rgba(5, 150, 105, 0.2)' }}
@@ -201,9 +286,8 @@ async function verReceta(pedido: PedidoCompleto) {
 
       {/* Modal de Detalle */}
       {pedidoSeleccionado && (() => {
-        // Cálculo dinámico para la barra de seguimiento en vivo según el estado real
         const estado = pedidoSeleccionado.estado;
-        const pasoPagado = true; // Todo pedido registrado ya está pagado
+        const pasoPagado = true;
         const pasoValidado = estado === 'CONFIRMADO' || estado === 'EN_CAMINO' || estado === 'ENTREGADO';
         const pasoEmpacado = estado === 'EN_CAMINO' || estado === 'ENTREGADO';
         const pasoEntregado = estado === 'ENTREGADO';
@@ -217,8 +301,8 @@ async function verReceta(pedido: PedidoCompleto) {
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 4 }}>
                     <h2 style={{ fontSize: 20, fontWeight: 800, color: '#111827', margin: 0 }}>Detalle del Pedido #{pedidoSeleccionado.codigoPedido}</h2>
-                    <span style={{ background: '#d1fae5', color: '#065f46', padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 700 }}>
-                      ✓ {pedidoSeleccionado.estado}
+                    <span style={{ background: pedidoSeleccionado.estado === 'CANCELADO' ? '#fee2e2' : '#d1fae5', color: pedidoSeleccionado.estado === 'CANCELADO' ? '#991b1b' : '#065f46', padding: '3px 10px', borderRadius: 12, fontSize: 11, fontWeight: 700 }}>
+                      {pedidoSeleccionado.estado}
                     </span>
                   </div>
                   <span style={{ fontSize: 12, color: '#6b7280' }}>Comprado el {new Date(pedidoSeleccionado.fechaPedido).toLocaleString()}</span>
@@ -231,16 +315,25 @@ async function verReceta(pedido: PedidoCompleto) {
                 </button>
               </div>
 
-              {/* Barra de Seguimiento en Vivo Dinámica */}
-              <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 12, padding: '14px 18px', marginBottom: 20 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 10 }}>Seguimiento de envío</span>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, fontWeight: 600, flexWrap: 'wrap', gap: 8 }}>
-                  <span style={{ color: pasoPagado ? '#059669' : '#9ca3af' }}>{pasoPagado ? '✅' : '⏳'} Pagado</span> ─── 
-                  <span style={{ color: pasoValidado ? '#059669' : '#9ca3af' }}>{pasoValidado ? '✅' : '⏳'} Validado</span> ─── 
-                  <span style={{ color: pasoEmpacado ? '#059669' : '#9ca3af' }}>{pasoEmpacado ? '✅' : '⏳'} Empacado</span> ─── 
-                  <span style={{ color: pasoEntregado ? '#059669' : '#9ca3af' }}>{pasoEntregado ? '✅' : '⏳'} Entregado</span>
+              {/* Si fue cancelado, mostrar motivo */}
+              {pedidoSeleccionado.estado === 'CANCELADO' && pedidoSeleccionado.motivoCancelacion && (
+                <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 12, padding: '12px 16px', marginBottom: 16, fontSize: 13, color: '#991b1b' }}>
+                  <strong>Motivo de cancelación:</strong> {pedidoSeleccionado.motivoCancelacion}
                 </div>
-              </div>
+              )}
+
+              {/* Barra de Seguimiento en Vivo Dinámica */}
+              {pedidoSeleccionado.estado !== 'CANCELADO' && (
+                <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 12, padding: '14px 18px', marginBottom: 20 }}>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 10 }}>Seguimiento de envío</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, fontWeight: 600, flexWrap: 'wrap', gap: 8 }}>
+                    <span style={{ color: pasoPagado ? '#059669' : '#9ca3af' }}>{pasoPagado ? '✅' : '⏳'} Pagado</span> ─── 
+                    <span style={{ color: pasoValidado ? '#059669' : '#9ca3af' }}>{pasoValidado ? '✅' : '⏳'} Validado</span> ─── 
+                    <span style={{ color: pasoEmpacado ? '#059669' : '#9ca3af' }}>{pasoEmpacado ? '✅' : '⏳'} Empacado</span> ─── 
+                    <span style={{ color: pasoEntregado ? '#059669' : '#9ca3af' }}>{pasoEntregado ? '✅' : '⏳'} Entregado</span>
+                  </div>
+                </div>
+              )}
 
               {/* Productos */}
               <div style={{ marginBottom: 16 }}>
@@ -280,23 +373,6 @@ async function verReceta(pedido: PedidoCompleto) {
                 </div>
               )}
 
-              {/* Dirección y Pago */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 20 }}>
-                <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 14, background: '#ffffff' }}>
-                  <h5 style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Dirección de Entrega</h5>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: 0 }}>{pedidoSeleccionado.envioDireccion || pedidoSeleccionado.recojoSede || 'Recojo en Tienda Principal'}</p>
-                  <p style={{ fontSize: 12, color: '#4b5563', margin: '2px 0 0' }}>{pedidoSeleccionado.envioDistrito || 'Santiago de Surco, Lima'}</p>
-                  {pedidoSeleccionado.envioReferencia && <p style={{ fontSize: 11, color: '#6b7280', margin: '2px 0 0' }}>Ref: {pedidoSeleccionado.envioReferencia}</p>}
-                </div>
-                
-                <div style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 14, background: '#ffffff' }}>
-                  <h5 style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Método de Pago y Factura</h5>
-                  <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: 0 }}>💳 Tarjeta de Débito/Crédito</p>
-                  <p style={{ fontSize: 12, color: '#4b5563', margin: '2px 0 0' }}>Boleta Electrónica: B001-{pedidoSeleccionado.id}</p>
-                  <p style={{ fontSize: 11, color: '#6b7280', margin: '2px 0 0' }}>DNI Titular: 74839201</p>
-                </div>
-              </div>
-
               {/* Totales */}
               <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 14, marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#6b7280' }}>
@@ -315,6 +391,19 @@ async function verReceta(pedido: PedidoCompleto) {
 
               {/* Botones inferiores */}
               <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+                {pedidoSeleccionado.estado === 'PENDIENTE' && (
+                  <button
+                    onClick={() => {
+                      setPedidoACancelar(pedidoSeleccionado);
+                      setMotivoCancelacion('');
+                      setErrorCancelacion('');
+                      setModalCancelarAbierto(true);
+                    }}
+                    style={{ padding: '10px 18px', background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
+                  >
+                    Cancelar este pedido
+                  </button>
+                )}
                 <button
                   onClick={() => descargarPdf(pedidoSeleccionado.id, pedidoSeleccionado.codigoPedido)}
                   style={{ padding: '10px 18px', background: '#f3f4f6', color: '#111827', border: '1px solid #d1d5db', borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
@@ -333,6 +422,78 @@ async function verReceta(pedido: PedidoCompleto) {
           </div>
         );
       })()}
+
+      {/* Modal Secundario para Motivo de Cancelación */}
+      {modalCancelarAbierto && pedidoACancelar && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', background: 'rgba(0, 0, 0, 0.6)', backdropFilter: 'blur(3px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, padding: 20 }}>
+          <div style={{ background: '#ffffff', borderRadius: 16, width: '100%', maxWidth: 480, padding: 24, boxShadow: '0 20px 25px -5px rgba(0,0,0,0.1)' }}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#111827', marginBottom: 8 }}>
+              Cancelar Pedido #{pedidoACancelar.codigoPedido}
+            </h3>
+            <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 16 }}>
+              Lamentamos that desees cancelar tu compra. Por favor, indícanos el motivo:
+            </p>
+
+            {errorCancelacion && (
+              <div style={{ background: '#fef2f2', color: '#dc2626', padding: '10px 12px', borderRadius: 8, fontSize: 13, marginBottom: 16 }}>
+                {errorCancelacion}
+              </div>
+            )}
+
+            <form onSubmit={confirmarCancelacion} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              <div>
+                <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
+                  Motivo principal *
+                </label>
+                <select
+                  value={motivoCancelacion}
+                  onChange={(e) => setMotivoCancelacion(e.target.value)}
+                  style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, backgroundColor: '#fff' }}
+                  required
+                >
+                  <option value="">— Selecciona un motivo —</option>
+                  {motivosPredefinidos.map((m) => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              </div>
+
+              {motivoCancelacion === 'Otro motivo' && (
+                <div>
+                  <label style={{ fontSize: 13, fontWeight: 600, color: '#374151', display: 'block', marginBottom: 6 }}>
+                    Especifica los detalles *
+                  </label>
+                  <textarea
+                    rows={3}
+                    placeholder="Escribe aquí el motivo..."
+                    onChange={(e) => setMotivoCancelacion(e.target.value)}
+                    style={{ width: '100%', padding: '10px 12px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}
+                    required
+                  />
+                </div>
+              )}
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => setModalCancelarAbierto(false)}
+                  disabled={cancelando}
+                  style={{ padding: '10px 16px', background: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: 8, fontWeight: 600, fontSize: 14, cursor: 'pointer' }}
+                >
+                  Volver
+                </button>
+                <button
+                  type="submit"
+                  disabled={cancelando}
+                  style={{ padding: '10px 20px', background: '#dc2626', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 14, cursor: 'pointer' }}
+                >
+                  {cancelando ? 'Cancelando...' : 'Confirmar Cancelación'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
     </div>
   );
