@@ -23,7 +23,7 @@ export function borrarSesion(tipo: TipoUsuario) {
 }
 
 export const api = axios.create({
-  baseURL: 'http://localhost:8081/api', // Apuntando directo al puerto actual de Spring Boot
+  baseURL: 'http://localhost:8080/api', // Apuntando directo al puerto actual de Spring Boot
   headers: { 'Content-Type': 'application/json' },
 });
 

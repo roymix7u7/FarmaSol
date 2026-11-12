@@ -46,6 +46,11 @@ export function PedidosGerente() {
   const [cargandoDetalle, setCargandoDetalle] = useState(false);
   const [cambiando, setCambiando] = useState(false);
 
+  // Estados para el modal de cancelación
+  const [cancelando, setCancelando] = useState<PedidoCompleto | null>(null);
+  const [motivo, setMotivo] = useState('');
+  const [errorMotivo, setErrorMotivo] = useState('');
+
   function cargar() {
     setCargando(true);
     setError('');
@@ -70,21 +75,35 @@ export function PedidosGerente() {
     }
   }
 
-  async function cambiarEstado(id: number, nuevo: EstadoPedido) {
+  async function cambiarEstado(id: number, nuevo: EstadoPedido, motivoCancelacion?: string) {
     setCambiando(true);
     setError('');
+    setErrorMotivo('');
     try {
-      const actualizado = await pedidosAdminApi.cambiarEstado(id, nuevo);
+      const actualizado = await pedidosAdminApi.cambiarEstado(id, nuevo, motivoCancelacion);
       setDetalle(actualizado);
+      setCancelando(null); // Cierra la ventana modal de cancelación
       cargar();
     } catch (err) {
-      setError(mensajeDeError(err, 'No se pudo cambiar el estado'));
+      if (nuevo === 'CANCELADO') {
+        setErrorMotivo(mensajeDeError(err, 'No se pudo cancelar el pedido'));
+      } else {
+        setError(mensajeDeError(err, 'No se pudo cambiar el estado'));
+      }
     } finally {
       setCambiando(false);
     }
   }
 
-  // El backend no filtra por texto en pedidos, así que se hace sobre lo recibido.
+  function confirmarCancelacion() {
+    if (!cancelando) return;
+    if (motivo.trim().length < 10) {
+      setErrorMotivo('Explica el motivo con al menos 10 caracteres para que el cliente sepa qué pasó.');
+      return;
+    }
+    cambiarEstado(cancelando.id, 'CANCELADO', motivo.trim());
+  }
+
   const termino = busqueda.trim().toLowerCase();
   const visibles = termino
     ? pedidos.filter(
@@ -190,6 +209,7 @@ export function PedidosGerente() {
         )}
       </div>
 
+      {/* MODAL DE DETALLE */}
       {(detalle || cargandoDetalle) && (
         <div className="modal-overlay" onClick={() => !cambiando && setDetalle(null)}>
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
@@ -218,7 +238,6 @@ export function PedidosGerente() {
                   </span>
                 </div>
 
-                {/* Avanzar el estado. Solo se ofrecen las transiciones válidas. */}
                 {SIGUIENTES_ESTADOS[detalle.estado].length > 0 ? (
                   <div style={{ marginBottom: 18 }}>
                     <p style={{ fontSize: 12.5, color: 'var(--texto-suave)', marginBottom: 7 }}>
@@ -230,7 +249,15 @@ export function PedidosGerente() {
                           key={siguiente}
                           className={`btn-chico ${siguiente === 'CANCELADO' ? 'es-rojo' : 'es-verde'}`}
                           disabled={cambiando}
-                          onClick={() => cambiarEstado(detalle.id, siguiente)}
+                          onClick={() => {
+                            if (siguiente === 'CANCELADO') {
+                              setCancelando(detalle);
+                              setMotivo('');
+                              setErrorMotivo('');
+                            } else {
+                              cambiarEstado(detalle.id, siguiente);
+                            }
+                          }}
                         >
                           {cambiando ? 'Guardando…' : infoEstado(siguiente).texto}
                         </button>
@@ -321,6 +348,69 @@ export function PedidosGerente() {
                 </div>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DE CANCELAR PEDIDO (CON MOTIVO) */}
+      {cancelando && (
+        <div className="modal-overlay" onClick={() => !cambiando && setCancelando(null)}>
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <h2 className="modal-title">Cancelar pedido</h2>
+                <p className="modal-subtitle">
+                  {cancelando.codigoPedido} · {cancelando.nombreCliente}
+                </p>
+              </div>
+              <button className="modal-close" onClick={() => setCancelando(null)}>
+                ×
+              </button>
+            </div>
+
+            {errorMotivo && <div className="modal-error">{errorMotivo}</div>}
+
+            <div className="form-field">
+              <label htmlFor="motivo-cancelacion">Motivo de la cancelación *</label>
+              <textarea
+                id="motivo-cancelacion"
+                value={motivo}
+                onChange={(e) => setMotivo(e.target.value)}
+                rows={4}
+                placeholder="Ej.: El producto se quedó sin stock, o el cliente solicitó cancelar la compra."
+                style={{
+                  width: '100%',
+                  padding: '10px 12px',
+                  border: '1px solid var(--borde)',
+                  borderRadius: 8,
+                  fontSize: 13.5,
+                  fontFamily: 'inherit',
+                  resize: 'vertical',
+                }}
+              />
+            </div>
+
+            <p style={{ fontSize: 12.5, color: 'var(--texto-suave)', marginTop: 8 }}>
+              El cliente verá este mensaje en su panel de "Mis Pedidos".
+            </p>
+
+            <div className="modal-actions">
+              <button
+                className="btn-cancel"
+                onClick={() => setCancelando(null)}
+                disabled={cambiando}
+              >
+                Volver
+              </button>
+              <button
+                className="btn-save"
+                onClick={confirmarCancelacion}
+                disabled={cambiando}
+                style={{ background: '#b91c1c' }}
+              >
+                {cambiando ? 'Cancelando…' : 'Confirmar Cancelación'}
+              </button>
+            </div>
           </div>
         </div>
       )}

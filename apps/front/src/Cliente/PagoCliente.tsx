@@ -29,10 +29,34 @@ export function PagoCliente() {
   const [numeroTarjeta, setNumeroTarjeta] = useState('');
   const [expiracion, setExpiracion] = useState('');
   const [cvv, setCvv] = useState('');
+  
+  // ESTADO SOLO PARA EL OJITO DEL CVV
+  const [mostrarCvv, setMostrarCvv] = useState(false);
 
   useEffect(() => {
     carritoApi.ver().then(setCarrito).catch(() => setCarrito(null)).finally(() => setCargando(false));
   }, []);
+
+  // --- FUNCIONES DE FORMATEO ---
+  function handleTarjetaChange(e: React.ChangeEvent<HTMLInputElement>) {
+    let valor = e.target.value.replace(/\D/g, ''); // Solo números
+    if (valor.length > 16) valor = valor.slice(0, 16); // Máximo 16
+    valor = valor.replace(/(\d{4})(?=\d)/g, '$1 '); // Espacio cada 4 dígitos
+    setNumeroTarjeta(valor);
+  }
+
+  function handleExpiracionChange(e: React.ChangeEvent<HTMLInputElement>) {
+    let valor = e.target.value.replace(/\D/g, '');
+    if (valor.length > 4) valor = valor.slice(0, 4);
+    if (valor.length > 2) valor = valor.slice(0, 2) + '/' + valor.slice(2); // Pone la barra
+    setExpiracion(valor);
+  }
+
+  function handleCvvChange(e: React.ChangeEvent<HTMLInputElement>) {
+    let valor = e.target.value.replace(/\D/g, '');
+    if (valor.length > 3) valor = valor.slice(0, 3); // Máximo 3 dígitos
+    setCvv(valor);
+  }
 
   async function simularPago() {
     setError('');
@@ -64,7 +88,7 @@ export function PagoCliente() {
         return;
       }
       if (numeroTarjeta.replace(/\s/g, '').length < 16) {
-        setError('El número de tarjeta debe tener al menos 16 dígitos.');
+        setError('El número de tarjeta debe tener exactamente 16 dígitos.');
         return;
       }
     }
@@ -144,6 +168,12 @@ export function PagoCliente() {
 
   return (
     <div className="checkout-body">
+      {/* LINK PARA LOS ICONOS (OJITO DEL CVV) */}
+      <link
+        rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      ></link>
+
       <div className="checkout-container">
         <header className="checkout-header-card">
           <div className="logo-container" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
@@ -321,39 +351,49 @@ export function PagoCliente() {
             ) : (
               <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', padding: '20px', borderRadius: '10px', marginBottom: '25px' }}>
                 <p style={{ fontWeight: 600, color: '#374151', marginBottom: '12px' }}>Datos de tu tarjeta (Obligatorios)</p>
+                
+                {/* NÚMERO DE TARJETA (SIN OJITO, SOLO FORMATO) */}
                 <div style={{ marginBottom: '12px' }}>
                   <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, color: '#4b5563', marginBottom: '4px' }}>Número de tarjeta *</label>
                   <input
                     type="text"
-                    maxLength={19}
                     value={numeroTarjeta}
-                    onChange={(e) => setNumeroTarjeta(e.target.value)}
+                    onChange={handleTarjetaChange}
                     placeholder="4111 2222 3333 4444"
                     style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
                   />
                 </div>
+
                 <div style={{ display: 'flex', gap: '12px' }}>
                   <div style={{ flex: 1 }}>
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, color: '#4b5563', marginBottom: '4px' }}>Expiración *</label>
                     <input
                       type="text"
-                      maxLength={5}
                       value={expiracion}
-                      onChange={(e) => setExpiracion(e.target.value)}
+                      onChange={handleExpiracionChange}
                       placeholder="MM/AA"
                       style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
                     />
                   </div>
                   <div style={{ flex: 1 }}>
                     <label style={{ display: 'block', fontSize: '12px', fontWeight: 500, color: '#4b5563', marginBottom: '4px' }}>CVV *</label>
-                    <input
-                      type="password"
-                      maxLength={4}
-                      value={cvv}
-                      onChange={(e) => setCvv(e.target.value)}
-                      placeholder="123"
-                      style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
-                    />
+                    {/* CVV CON SU OJITO */}
+                    <div style={{ position: 'relative' }}>
+                      <input
+                        type={mostrarCvv ? 'text' : 'password'}
+                        value={cvv}
+                        onChange={handleCvvChange}
+                        placeholder="123"
+                        style={{ width: '100%', padding: '10px 40px 10px 10px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '14px' }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setMostrarCvv(!mostrarCvv)}
+                        style={{ position: 'absolute', right: 10, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}
+                      >
+                        <i className={mostrarCvv ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'}></i>
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

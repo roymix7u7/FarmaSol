@@ -128,6 +128,7 @@ export function HomeCliente() {
                   boxShadow: 'var(--sombra)',
                 }}
               >
+                {/* CONTENEDOR DE LA IMAGEN CON EL BADGE RX */}
                 <div
                   style={{
                     height: 140,
@@ -138,6 +139,7 @@ export function HomeCliente() {
                     background: '#f9fafb',
                     borderRadius: 8,
                     overflow: 'hidden',
+                    position: 'relative', // <-- Necesario para posicionar el Rx
                   }}
                 >
                   {prod.imagenUrl ? (
@@ -155,6 +157,26 @@ export function HomeCliente() {
                     >
                       💊
                     </div>
+                  )}
+
+                  {/* ETIQUETA RX */}
+                  {prod.requiereReceta && (
+                    <span
+                      style={{
+                        position: 'absolute',
+                        top: 8,
+                        left: 8,
+                        background: '#fef3c7',
+                        color: '#92400e',
+                        border: '1px solid #fde68a',
+                        borderRadius: 6,
+                        padding: '2px 7px',
+                        fontSize: 11,
+                        fontWeight: 700,
+                      }}
+                    >
+                      Rx
+                    </span>
                   )}
                 </div>
 
