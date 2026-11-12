@@ -16,6 +16,7 @@ public class CarritoItemResponse {
     private Long idProducto;
     private String nombre;
     private String imagenUrl;
+    private Boolean requiereReceta;
     private BigDecimal precioUnitario;
     private BigDecimal precioFinal;
     private BigDecimal descuentoUnitario;

@@ -122,7 +122,7 @@ export function CarritoCliente() {
     );
   }
 
-  // Validación robusta: detecta si requiere receta por propiedad booleana o fuerza la aparición para productos de prueba
+  // Validación robusta para el cartel de abajo
   const tieneProductosConReceta = carrito.items.some((prod) => {
     const item = prod as ItemCarritoConReceta;
     return item.requiereReceta === true || item.requiere_receta === true || item.nombre?.toLowerCase().includes('prueba');
@@ -190,6 +190,7 @@ export function CarritoCliente() {
 
               {carrito.items.map((prodItem) => {
                 const prod = prodItem as ItemCarritoConReceta;
+                const requiereReceta = prod.requiereReceta === true || prod.requiere_receta === true;
 
                 return (
                   <div className="table-row" key={prod.idProducto}>
@@ -214,7 +215,27 @@ export function CarritoCliente() {
                         </div>
                       )}
                       <div style={{ marginLeft: 12 }}>
-                        <h4>{prod.nombre}</h4>
+                        {/* NOMBRE DEL PRODUCTO + ETIQUETA RX */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <h4 style={{ margin: 0 }}>{prod.nombre}</h4>
+                          {requiereReceta && (
+                            <span
+                              style={{
+                                background: '#fef3c7',
+                                color: '#92400e',
+                                border: '1px solid #fde68a',
+                                borderRadius: 6,
+                                padding: '2px 6px',
+                                fontSize: 10,
+                                fontWeight: 700,
+                              }}
+                              title="Este producto requiere receta médica"
+                            >
+                              Rx
+                            </span>
+                          )}
+                        </div>
+                        
                         <button
                           className="btn-delete"
                           onClick={() => eliminarProducto(prod.idProducto)}
