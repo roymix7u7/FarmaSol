@@ -1,4 +1,4 @@
-nombre;categoria;precio;stock;marca;presentacion;requiereReceta;imagenUrl;registroSanitario;subcategoria
+﻿nombre;categoria;precio;stock;marca;presentacion;requiereReceta;imagenUrl;registroSanitario;subcategoria
 Paracetamol 500mg Via Oral Tabletas x 100;analgesicos;12.50;120;Genfar;tabs x 100;false;/img/productos/Paracetamol-500mg-Via-Oral-Tabletas-100.webp;RS-12345;Tabletas
 Actron Ibuprofeno 400mg Capsula x 1;analgesicos;8.90;45;Bayer;caps x 1;false;/img/productos/actron-ibuprofeno-400mg-Capsulax1.webp;RS-12346;Cápsulas
 Pregabalina 75mg Capsulas x 30;analgesicos;22.00;30;Farmindustria;Caja caps x 30;true;/img/productos/Pregabalina-75mg-Capsulas-30.webp;RS-12347;Cápsulas
@@ -107,5 +107,10 @@ Tinidazol 500mg GF Tabletas Recubiertas x 8;antibioticos;7.00;20;Genfar;Tabs Rec
 Ketoprofeno 2-5 GF Gel Frasco 60g;antiinflamatorio;36.00;20;Genfar;Frasco 60g;true;/img/productos/Ketoprofeno-2-5-GF-Gel-Frasco-60g.webp;EE-14573;Geles
 Fluconazol 200mg GF Capsulas x 4;antimicotico;12.50;15;Genfar;caps x 4;true;/img/productos/Fluconazol-200mg-GF-4caps.webp;EE-00655;Cápsulas
 Nebivolol 5mg GF Tabletas x 30;betabloqueantes;54.00;10;Genfar;Tabs x 30;true;/img/productos/Nebivolol-5mg-GF-30tabs.webp;EE-06558;Tabletas
-Isoconazol 1 GF Crema Tubo 20g;antifungico;12.50;15;Genfar;Tubo 20g;true;/img/productos/Isoconazol-1-GF-Crema-tubo-20g.webp;EE-03899;Cremas
-Paracetamol 160mg-5mL GF Jarabe Sabor Fresa Frasco 90mL;analgesicos;7.50;20;Genfar;Frasco 90mL;false;/img/productos/Paracetamol-160mg-5mL-GF-Jarabe-Sabor-Fresa-Frasco-90mL.webp;EE-08968;Jarabes
+Isoconazol 1 GF Crema Tubo 20g;antifungico;12;15;Genfar;Tubo 20g;true;/img/productos/Isoconazol-1-GF-Crema-tubo-20g.webp;EE-03899;Cremas
+Paracetamol 160mg-5mL GF Jarabe Sabor Fresa Frasco 90mL;analgesicos;7.5;20;Genfar;Frasco 90mL;false;/img/productos/Paracetamol-160mg-5mL-GF-Jarabe-Sabor-Fresa-Frasco-90mL.webp;EE-08968;Jarabes
+Plentitud FEMME 6a8;adulto-mayor;16.5;20;Plentitud;Unidades x 8;false;/img/productos/P-F-6a8-8unid.jpg;S/R;Pañales
+Plentitud Nocturna Ropa Intima Descartable 9a10;adulto-mayor;20.0;15;Plentitud;Unidades x 1;false;/img/productos/P-N-R-I-D-9a10-1unid.jpg;S/R;Pañales
+Plentitud Fresco Diario Ropa Intima Descartable 5a10;adulto-mayor;25.0;10;Plentitud;Unidades x 8;false;/img/productos/P-F-D-R-R-I-D-5a10-8unid.png;S/R;Pañales
+Plentitud Plus Men Ropa Intima Descartable 8a10;adulto-mayor;20.0;17;Plentitud;Unidades x 16;false;/img/productos/P-P-M-R-I-D-8a10-16unid.jpg;S/R;Pañales
+Plentitud Plus Fit Ropa Intima Descartable 8a10;adulto-mayor;12.5;5;Plentitud;Unidad x 1;false;/img/productos/P-P-F-R-I-D-8a10-1unid.jpg;S/R;Pañales

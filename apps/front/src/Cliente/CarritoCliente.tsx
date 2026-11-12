@@ -201,6 +201,7 @@ const tieneProductosConReceta = carrito?.items.some((prod: any) => {
 
               {carrito.items.map((prodItem) => {
                 const prod = prodItem as ItemCarritoConReceta;
+                const requiereReceta = prod.requiereReceta === true || prod.requiere_receta === true;
 
                 return (
                   <div className="table-row" key={prod.idProducto}>
@@ -225,7 +226,27 @@ const tieneProductosConReceta = carrito?.items.some((prod: any) => {
                         </div>
                       )}
                       <div style={{ marginLeft: 12 }}>
-                        <h4>{prod.nombre}</h4>
+                        {/* NOMBRE DEL PRODUCTO + ETIQUETA RX */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <h4 style={{ margin: 0 }}>{prod.nombre}</h4>
+                          {requiereReceta && (
+                            <span
+                              style={{
+                                background: '#fef3c7',
+                                color: '#92400e',
+                                border: '1px solid #fde68a',
+                                borderRadius: 6,
+                                padding: '2px 6px',
+                                fontSize: 10,
+                                fontWeight: 700,
+                              }}
+                              title="Este producto requiere receta médica"
+                            >
+                              Rx
+                            </span>
+                          )}
+                        </div>
+                        
                         <button
                           className="btn-delete"
                           onClick={() => eliminarProducto(prod.idProducto)}
