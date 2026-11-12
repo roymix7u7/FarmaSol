@@ -17,6 +17,11 @@ interface ItemCarritoConReceta {
   requiere_receta?: boolean;
   idPedidoDetalle?: number | null;
   estadoReceta?: 'PENDIENTE_REVISION' | 'APROBADA' | 'RECHAZADA' | null;
+  producto?: {
+    nombre?: string;
+    requiereReceta?: boolean;
+    requiere_receta?: boolean;
+  };
 }
 
 export function CarritoCliente() {
@@ -101,6 +106,18 @@ export function CarritoCliente() {
     }
   }
 
+const tieneProductosConReceta = carrito?.items.some((prod: any) => {
+    return prod.requiereReceta === true || prod.requiere_receta === true;
+  }) ?? false;
+
+  const handleContinuarConEntrega = () => {
+    if (tieneProductosConReceta && !archivoSubidoNombre) {
+      setError('⚠️ Uno o más productos en tu carrito requieren receta médica obligatoria. Por favor, adjunta tu receta antes de continuar.');
+      return;
+    }
+    navigate('/cliente/entrega');
+  };
+
   if (cargando) {
     return (
       <div style={{ padding: 60, textAlign: 'center', color: '#6b7280' }}>Cargando…</div>
@@ -121,12 +138,6 @@ export function CarritoCliente() {
       </div>
     );
   }
-
-  // Validación robusta: detecta si requiere receta por propiedad booleana o fuerza la aparición para productos de prueba
-  const tieneProductosConReceta = carrito.items.some((prod) => {
-    const item = prod as ItemCarritoConReceta;
-    return item.requiereReceta === true || item.requiere_receta === true || item.nombre?.toLowerCase().includes('prueba');
-  });
 
   return (
     <div className="checkout-body">
@@ -275,12 +286,12 @@ export function CarritoCliente() {
             <button
               type="button"
               className="btn-continue"
-              onClick={() => navigate('/cliente/entrega')}
+              onClick={handleContinuarConEntrega}
             >
               Continuar con la Entrega <i className="fa-solid fa-arrow-right"></i>
             </button>
 
-            {/* SECCIÓN DE RECETA: Aparece dinámicamente cuando el producto exige receta */}
+            {/* SECCIÓN DE RECETA: Aparece automáticamente cuando requiereReceta es true */}
             {tieneProductosConReceta && (
               <div 
                 style={{ 

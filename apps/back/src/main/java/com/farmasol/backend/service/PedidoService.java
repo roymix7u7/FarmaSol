@@ -26,6 +26,8 @@ public interface PedidoService {
 
     PedidoResponse cambiarEstado(Long idPersonal, Long idPedido, EstadoPedido nuevoEstado);
     
+    PedidoResponse cancelarPedidoCliente(Long idCliente, Long idPedido, String motivo);
+    
 
     // ... tus otros métodos existentes ...
     byte[] generarComprobantePdf(Long idPedido);

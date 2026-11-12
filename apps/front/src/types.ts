@@ -82,3 +82,34 @@ export interface ApiError {
   path: string;
   validaciones?: Record<string, string>;
 }
+export interface PedidoDetalle {
+  id?: number;
+  idProducto?: number;
+  nombreProducto: string;
+  cantidad: number;
+  precioUnitario: number;
+  subtotal: number;
+  idRecetaVigente?: number;
+}
+
+export interface PedidoCompleto {
+  id: number;
+  codigoPedido: string;
+  estado: string;
+  fechaPedido: string;
+  total: number;
+  subtotal: number;
+  requiereReceta: boolean;
+  motivoCancelacion?: string | null; // <--- Añade esta línea
+  detalles: Array<{
+    id?: number;
+    nombreProducto: string;
+    cantidad: number;
+    subtotal: number;
+    idRecetaVigente?: number;
+  }>;
+  envioDireccion?: string;
+  envioDistrito?: string;
+  envioReferencia?: string;
+  recojoSede?: string;
+}
