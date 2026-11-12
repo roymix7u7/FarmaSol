@@ -145,7 +145,6 @@ public class CarritoServiceImpl implements CarritoService {
                     .cantidad(d.getCantidad())
                     .subtotal(lineaSubtotal)
                     .stockDisponible(p.getStock())
-                    .requiereReceta(p.getRequiereReceta()) // <--- ¡Añade esta línea aquí!
                     .build());
 
             subtotal = subtotal.add(lineaSubtotal);

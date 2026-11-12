@@ -22,6 +22,5 @@ public class CarritoItemResponse {
     private BigDecimal descuentoUnitario;
     private Integer cantidad;
     private BigDecimal subtotal;
-    private Boolean requiereReceta;
     private Integer stockDisponible;
 }
