@@ -231,6 +231,25 @@ public class PedidoServiceImpl implements PedidoService {
         pedido.setEstado(nuevoEstado);
         return toResponse(pedidoRepository.save(pedido));
     }
+ @Override
+    @Transactional
+    public PedidoResponse cancelarPedidoCliente(Long idCliente, Long idPedido, String motivo) {
+        // 1. Buscar el pedido asegurando que pertenezca al cliente
+        Pedido pedido = pedidoRepository.findByIdAndCliente_Id(idPedido, idCliente)
+                .orElseThrow(() -> new BusinessException("El pedido no existe o no te pertenece"));
+
+        // 2. Validar que el estado permita cancelación
+        if (pedido.getEstado() != EstadoPedido.PENDIENTE) {
+            throw new BusinessException("El pedido ya no se puede cancelar porque su estado actual es: " + pedido.getEstado());
+        }
+
+        // 3. Registrar cancelación
+        pedido.setEstado(EstadoPedido.CANCELADO);
+        pedido.setMotivoCancelacion(motivo);
+
+        Pedido pedidoGuardado = pedidoRepository.save(pedido);
+        return toResponse(pedidoGuardado);
+    }
 // =========================================================================
     // MÉTODO IMPLEMENTADO PARA LA GENERACIÓN DEL COMPROBANTE PDF
     // =========================================================================

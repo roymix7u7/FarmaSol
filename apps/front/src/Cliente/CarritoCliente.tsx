@@ -17,6 +17,11 @@ interface ItemCarritoConReceta {
   requiere_receta?: boolean;
   idPedidoDetalle?: number | null;
   estadoReceta?: 'PENDIENTE_REVISION' | 'APROBADA' | 'RECHAZADA' | null;
+  producto?: {
+    nombre?: string;
+    requiereReceta?: boolean;
+    requiere_receta?: boolean;
+  };
 }
 
 export function CarritoCliente() {
@@ -101,6 +106,18 @@ export function CarritoCliente() {
     }
   }
 
+const tieneProductosConReceta = carrito?.items.some((prod: any) => {
+    return prod.requiereReceta === true || prod.requiere_receta === true;
+  }) ?? false;
+
+  const handleContinuarConEntrega = () => {
+    if (tieneProductosConReceta && !archivoSubidoNombre) {
+      setError('⚠️ Uno o más productos en tu carrito requieren receta médica obligatoria. Por favor, adjunta tu receta antes de continuar.');
+      return;
+    }
+    navigate('/cliente/entrega');
+  };
+
   if (cargando) {
     return (
       <div style={{ padding: 60, textAlign: 'center', color: '#6b7280' }}>Cargando…</div>
@@ -121,12 +138,6 @@ export function CarritoCliente() {
       </div>
     );
   }
-
-  // Validación robusta: detecta si requiere receta por propiedad booleana o fuerza la aparición para productos de prueba
-  const tieneProductosConReceta = carrito.items.some((prod) => {
-    const item = prod as ItemCarritoConReceta;
-    return item.requiereReceta === true || item.requiere_receta === true || item.nombre?.toLowerCase().includes('prueba');
-  });
 
   return (
     <div className="checkout-body">
@@ -190,6 +201,7 @@ export function CarritoCliente() {
 
               {carrito.items.map((prodItem) => {
                 const prod = prodItem as ItemCarritoConReceta;
+                const requiereReceta = prod.requiereReceta === true || prod.requiere_receta === true;
 
                 return (
                   <div className="table-row" key={prod.idProducto}>
@@ -214,7 +226,27 @@ export function CarritoCliente() {
                         </div>
                       )}
                       <div style={{ marginLeft: 12 }}>
-                        <h4>{prod.nombre}</h4>
+                        {/* NOMBRE DEL PRODUCTO + ETIQUETA RX */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <h4 style={{ margin: 0 }}>{prod.nombre}</h4>
+                          {requiereReceta && (
+                            <span
+                              style={{
+                                background: '#fef3c7',
+                                color: '#92400e',
+                                border: '1px solid #fde68a',
+                                borderRadius: 6,
+                                padding: '2px 6px',
+                                fontSize: 10,
+                                fontWeight: 700,
+                              }}
+                              title="Este producto requiere receta médica"
+                            >
+                              Rx
+                            </span>
+                          )}
+                        </div>
+                        
                         <button
                           className="btn-delete"
                           onClick={() => eliminarProducto(prod.idProducto)}
@@ -275,12 +307,12 @@ export function CarritoCliente() {
             <button
               type="button"
               className="btn-continue"
-              onClick={() => navigate('/cliente/entrega')}
+              onClick={handleContinuarConEntrega}
             >
               Continuar con la Entrega <i className="fa-solid fa-arrow-right"></i>
             </button>
 
-            {/* SECCIÓN DE RECETA: Aparece dinámicamente cuando el producto exige receta */}
+            {/* SECCIÓN DE RECETA: Aparece automáticamente cuando requiereReceta es true */}
             {tieneProductosConReceta && (
               <div 
                 style={{ 

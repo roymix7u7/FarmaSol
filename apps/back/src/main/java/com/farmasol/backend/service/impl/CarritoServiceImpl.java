@@ -138,6 +138,7 @@ public class CarritoServiceImpl implements CarritoService {
                     .idProducto(p.getId())
                     .nombre(p.getNombre())
                     .imagenUrl(p.getImagenUrl())
+                    .requiereReceta(p.getRequiereReceta())
                     .precioUnitario(precio.getPrecioBase())
                     .precioFinal(precio.getPrecioFinal())
                     .descuentoUnitario(precio.getDescuentoUnitario())

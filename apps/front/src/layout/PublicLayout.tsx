@@ -116,6 +116,9 @@ export function PublicLayout() {
           <NavLink to="/" end className={({ isActive }) => (isActive ? 'activo' : undefined)}>
             Inicio
           </NavLink>
+          <NavLink to="/nosotros" className={({ isActive }) => (isActive ? 'activo' : undefined)}>
+            Nosotros
+          </NavLink>
           {categorias.map((c) => (
             <NavLink
               key={c.id}
@@ -125,9 +128,6 @@ export function PublicLayout() {
               {c.nombre}
             </NavLink>
           ))}
-          <NavLink to="/nosotros" className={({ isActive }) => (isActive ? 'activo' : undefined)}>
-            Nosotros
-          </NavLink>
         </nav>
       </header>
 
@@ -137,7 +137,7 @@ export function PublicLayout() {
 
       <footer className="pub-footer">
         <p>FarmaSol · Farmacia y Botica · Todos los productos con registro sanitario</p>
-        {/* Unica entrada al portal interno desde la web publica. */}
+        {/* Única entrada al portal interno desde la web pública. */}
         <Link to="/gerente/login" className="pub-footer-staff">
           Acceso personal
         </Link>
