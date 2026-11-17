@@ -59,38 +59,31 @@ public class PedidoServiceImpl implements PedidoService {
             throw new BusinessException("El carrito está vacío");
         }
 
-        List<CarritoDetalle> sinReceta = new ArrayList<>();
-        List<CarritoDetalle> conReceta = new ArrayList<>();
-        for (CarritoDetalle linea : carrito.getDetalles()) {
-            if (Boolean.TRUE.equals(linea.getProducto().getRequiereReceta())) {
-                conReceta.add(linea);
-            } else {
-                sinReceta.add(linea);
-            }
-        }
-
-        List<Pedido> pedidosCreados = new ArrayList<>();
-        if (!sinReceta.isEmpty()) {
-            pedidosCreados.add(armarPedido(carrito.getCliente(), request, sinReceta, false, pedidosCreados.isEmpty()));
-        }
-        if (!conReceta.isEmpty()) {
-            pedidosCreados.add(armarPedido(carrito.getCliente(), request, conReceta, true, pedidosCreados.isEmpty()));
-        }
+        // Una compra es un solo pedido, aunque mezcle productos con y sin receta.
+        // Antes se partía en dos (uno con sufijo -R) y el cliente veía en "Mis
+        // pedidos" una compra como si fueran dos. La receta se controla por línea:
+        // cada detalle lleva su requiereReceta, y el pedido no se puede confirmar
+        // hasta que todas esas líneas tengan la receta aprobada
+        // (ver todasLasRecetasAprobadas).
+        Pedido pedido = armarPedido(carrito.getCliente(), request, carrito.getDetalles());
 
         carrito.getDetalles().clear();
         carritoRepository.save(carrito);
 
-        return pedidosCreados.stream().map(this::toResponse).toList();
+        // Se mantiene la lista para no romper a quien ya consume este endpoint.
+        return List.of(toResponse(pedido));
     }
 
-    private Pedido armarPedido(Cliente cliente, CheckoutRequest request, List<CarritoDetalle> lineas,
-                               boolean conReceta, boolean incluyeCostoEnvio) {
+    private Pedido armarPedido(Cliente cliente, CheckoutRequest request, List<CarritoDetalle> lineas) {
+        boolean conReceta = lineas.stream()
+                .anyMatch(l -> Boolean.TRUE.equals(l.getProducto().getRequiereReceta()));
+
         Pedido.PedidoBuilder builder = Pedido.builder()
                 .cliente(cliente)
                 .estado(EstadoPedido.PENDIENTE)
                 .tipoEntrega(request.getTipoEntrega())
                 .requiereReceta(conReceta)
-                .costoEnvio(incluyeCostoEnvio && costoEnvio != null ? costoEnvio : BigDecimal.ZERO)
+                .costoEnvio(costoEnvio != null ? costoEnvio : BigDecimal.ZERO)
                 .notas(request.getNotas());
 
         if (request.getTipoEntrega() == TipoEntrega.DELIVERY) {
@@ -137,7 +130,7 @@ public class PedidoServiceImpl implements PedidoService {
                     .descuentoUnitario(precio.getDescuentoUnitario())
                     .cantidad(linea.getCantidad())
                     .subtotal(lineaSubtotal)
-                    .requiereReceta(conReceta)
+                    .requiereReceta(Boolean.TRUE.equals(producto.getRequiereReceta()))
                     .build();
             pedido.getDetalles().add(detalle);
 
@@ -384,6 +377,10 @@ public class PedidoServiceImpl implements PedidoService {
 
     private PedidoResumenResponse toResumen(Pedido p) {
         int items = p.getDetalles().stream().mapToInt(PedidoDetalle::getCantidad).sum();
+        List<PedidoResumenResponse.ProductoResumen> productos = p.getDetalles().stream()
+                .map(d -> new PedidoResumenResponse.ProductoResumen(
+                        d.getNombreProducto(), d.getCantidad(), d.getSubtotal(), d.getRequiereReceta()))
+                .toList();
         return PedidoResumenResponse.builder()
                 .id(p.getId())
                 .codigoPedido(p.getCodigoPedido())
@@ -392,6 +389,7 @@ public class PedidoServiceImpl implements PedidoService {
                 .requiereReceta(p.getRequiereReceta())
                 .total(p.getTotal())
                 .cantidadItems(items)
+                .productos(productos)
                 .fechaPedido(p.getFechaPedido())
                 .build();
     }

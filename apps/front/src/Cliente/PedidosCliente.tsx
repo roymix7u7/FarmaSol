@@ -11,7 +11,11 @@ export interface PedidoDetalle {
   precioUnitario?: number;
   subtotal: number;
   idRecetaVigente?: number;
+  requiereReceta?: boolean;
 }
+
+/** Cuántos productos se listan en la tarjeta antes de resumir el resto. */
+const PRODUCTOS_EN_VISTA_PREVIA = 3;
 
 export interface PedidoCompleto {
   id: number;
@@ -28,6 +32,9 @@ export interface PedidoCompleto {
   fechaEntrega?: string | null;
   notas?: string | null;
   motivoCancelacion?: string | null;
+  /** Viene en la lista (/pedidos/mios): nombre, cantidad y subtotal de cada línea. */
+  productos?: PedidoDetalle[];
+  /** Solo en el pedido completo (/pedidos/mios/{id}), al abrir "Ver detalle". */
   detalles?: PedidoDetalle[];
   envioDireccion?: string | null;
   envioDistrito?: string | null;
@@ -41,6 +48,7 @@ export function PedidosCliente() {
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
   const [pedidoSeleccionado, setPedidoSeleccionado] = useState<PedidoCompleto | null>(null);
+  const [abriendoId, setAbriendoId] = useState<number | null>(null);
 
   // Estados para el flujo de cancelación de pedido con motivo
   const [modalCancelarAbierto, setModalCancelarAbierto] = useState(false);
@@ -69,6 +77,19 @@ export function PedidosCliente() {
       setError(mensajeDeError(err, 'No se pudieron cargar tus pedidos'));
     } finally {
       setCargando(false);
+    }
+  }
+
+  /** La lista trae un resumen; el detalle (precios, recetas, entrega) se pide al abrirlo. */
+  async function abrirDetalle(p: PedidoCompleto) {
+    setAbriendoId(p.id);
+    try {
+      const completo = await pedidosApi.miPedido(p.id);
+      setPedidoSeleccionado(completo as unknown as PedidoCompleto);
+    } catch (err) {
+      alert(mensajeDeError(err, 'No se pudo cargar el detalle del pedido'));
+    } finally {
+      setAbriendoId(null);
     }
   }
 
@@ -208,6 +229,9 @@ export function PedidosCliente() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
             {pedidos.map((p) => {
+              const lineas = p.productos ?? p.detalles ?? [];
+              const visibles = lineas.slice(0, PRODUCTOS_EN_VISTA_PREVIA);
+              const ocultos = lineas.length - visibles.length;
               const esEntregado = p.estado === 'ENTREGADO';
               const esEnCamino = p.estado === 'EN_CAMINO' || p.estado === 'CONFIRMADO';
               const colorBadgeBg = esEntregado ? '#d1fae5' : (esEnCamino ? '#fef3c7' : '#fee2e2');
@@ -235,17 +259,26 @@ export function PedidosCliente() {
                   {/* Cuerpo */}
                   <div style={{ padding: '20px 24px' }}>
                     <div style={{ fontSize: 13, fontWeight: 600, color: '#4b5563', marginBottom: 8, textTransform: 'uppercase' }}>
-                      Resumen del pedido
+                      {lineas.length === 1 ? '1 producto' : `${lineas.length} productos`}
                     </div>
-                    {p.detalles && p.detalles.length > 0 ? (
-                      p.detalles.map((d, idx) => (
-                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: 14, marginBottom: 6, color: '#1f2937' }}>
-                          <span>{d.nombreProducto} <span style={{ color: '#6b7280', fontSize: 13 }}>(x{d.cantidad})</span></span>
-                          <span style={{ fontWeight: 600 }}>S/ {(d.subtotal || 0).toFixed(2)}</span>
-                        </div>
-                      ))
-                    ) : (
-                      <div style={{ fontSize: 14, color: '#4b5563' }}>Pedido con productos asociados</div>
+                    {visibles.map((d, idx) => (
+                      <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', gap: 12, fontSize: 14, marginBottom: 6, color: '#1f2937' }}>
+                        <span>
+                          {d.nombreProducto} <span style={{ color: '#6b7280', fontSize: 13 }}>(x{d.cantidad})</span>
+                          {d.requiereReceta && (
+                            <span style={{ marginLeft: 6, background: '#fef3c7', color: '#92400e', padding: '1px 6px', borderRadius: 6, fontSize: 11, fontWeight: 700 }}>Rx</span>
+                          )}
+                        </span>
+                        <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>S/ {(d.subtotal || 0).toFixed(2)}</span>
+                      </div>
+                    ))}
+                    {ocultos > 0 && (
+                      <button
+                        onClick={() => abrirDetalle(p)}
+                        style={{ background: 'none', border: 'none', padding: 0, color: '#059669', fontSize: 13, fontWeight: 600, cursor: 'pointer' }}
+                      >
+                        y {ocultos} {ocultos === 1 ? 'producto más' : 'productos más'}…
+                      </button>
                     )}
                     
                     <div style={{ marginTop: 16, paddingTop: 12, borderTop: '1px dashed #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -270,10 +303,11 @@ export function PedidosCliente() {
                       </button>
                     )}
                     <button
-                      onClick={() => setPedidoSeleccionado(p)}
+                      onClick={() => abrirDetalle(p)}
+                      disabled={abriendoId === p.id}
                       style={{ padding: '9px 22px', background: '#059669', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: 'pointer', boxShadow: '0 2px 8px rgba(5, 150, 105, 0.2)' }}
                     >
-                      Ver detalle
+                      {abriendoId === p.id ? 'Cargando…' : 'Ver detalle'}
                     </button>
                   </div>
 
@@ -343,8 +377,8 @@ export function PedidosCliente() {
                   {pedidoSeleccionado.detalles?.map((d, i) => (
                     <div key={i} style={{ border: '1px solid #e5e7eb', borderRadius: 12, padding: 14, background: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                        <div style={{ width: 44, height: 44, background: '#e6f4ea', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: '#059669', fontSize: 11 }}>
-                          Rx
+                        <div style={{ width: 44, height: 44, background: d.requiereReceta ? '#fef3c7' : '#e6f4ea', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 800, color: d.requiereReceta ? '#92400e' : '#059669', fontSize: d.requiereReceta ? 11 : 18 }}>
+                          {d.requiereReceta ? 'Rx' : '💊'}
                         </div>
                         <div>
                           <strong style={{ display: 'block', color: '#111827', fontSize: 14, marginBottom: 2 }}>{d.nombreProducto}</strong>

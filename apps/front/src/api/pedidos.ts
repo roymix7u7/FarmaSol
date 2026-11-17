@@ -15,7 +15,16 @@ export interface PedidoResumen {
   requiereReceta: boolean;
   total: number;
   cantidadItems: number;
+  /** Qué se compró: alcanza para la vista previa en la lista. */
+  productos: ProductoResumen[];
   fechaPedido: string;
+}
+
+export interface ProductoResumen {
+  nombreProducto: string;
+  cantidad: number;
+  subtotal: number;
+  requiereReceta: boolean;
 }
 
 export interface PedidoDetalle {
@@ -61,7 +70,13 @@ export interface PedidoCompleto {
 
 export const pedidosApi = {
  async misPedidos() {
-    const response = await api.get('/pedidos/mios');
+    const response = await api.get<PedidoResumen[]>('/pedidos/mios');
+    return response.data;
+  },
+
+  /** El pedido completo, con cada línea y el estado de su receta. */
+  async miPedido(idPedido: number) {
+    const response = await api.get<PedidoCompleto>(`/pedidos/mios/${idPedido}`);
     return response.data;
   },
 
