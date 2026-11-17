@@ -25,7 +25,17 @@ export default defineConfig({
         proxy: {
             '/api': {
                 target: apiTarget,
-                changeOrigin: true
+                changeOrigin: true,
+                // Para el navegador, /api es su mismo origen: esto no es una
+                // petición entre sitios. Pero reenvía el Origin de la página, y el
+                // backend solo acepta los de CORS_ORIGINS: quien abría la app por
+                // la IP de la red o por un túnel veía los productos (los GET no
+                // mandan Origin) pero no podía iniciar sesión (403 "Invalid CORS
+                // request"). Quitarlo aquí no abre nada en producción: este proxy
+                // solo existe en `npm run dev`.
+                configure: (proxy) => {
+                    proxy.on('proxyReq', (proxyReq) => proxyReq.removeHeader('origin'))
+                }
             }
         }
     }
