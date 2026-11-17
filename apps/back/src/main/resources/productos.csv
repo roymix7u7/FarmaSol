@@ -1,6 +1,6 @@
 ﻿nombre;categoria;precio;stock;marca;presentacion;requiereReceta;imagenUrl;registroSanitario;subcategoria
 Paracetamol 500mg Via Oral Tabletas x 100;analgesicos;12.50;120;Genfar;tabs x 100;false;/img/productos/Paracetamol-500mg-Via-Oral-Tabletas-100.webp;RS-12345;Tabletas
-Actron Ibuprofeno 400mg Capsula x 1;analgesicos;8.90;45;Bayer;caps x 1;false;/img/productos/actron-ibuprofeno-400mg-Capsulax1.webp;RS-12346;Cápsulas
+Actron Ibuprofeno 400mg Capsula x 1;analgesicos;8.90;45;Bayer;Caps x 1;false;/img/productos/actron-ibuprofeno-400mg-Capsulax1.webp;RS-12346;Cápsulas
 Pregabalina 75mg Capsulas x 30;analgesicos;22.00;30;Farmindustria;Caja caps x 30;true;/img/productos/Pregabalina-75mg-Capsulas-30.webp;RS-12347;Cápsulas
 Panadol Antigripal NF Sobres x 2;antigripales;18.00;50;GSK;Sobres tab x 2;false;/img/productos/Panadol-Antigripal-NF-52SOB-2TABS.jpg;RS-12348;Sobres
 Amoxicilina Polvo para Solucion Oral 60mL;antibioticos;15.00;0;Genfar;Frasco 60mL;true;/img/productos/AMOXICILINA-Polvo-para-solucion-oral-60mL.jpg;RS-12349;Suspensión
@@ -28,7 +28,7 @@ Aceite de Almendras 30mL;dermocosmetico;16.00;18;Alkofarma;Frasco 30mL;false;/im
 Aceite de Ricino 30mL;dermocosmetico;18.00;15;Alkofarma;Frasco 30mL;false;/img/productos/aceite-de-ricino-30-ml-1024x1024.png;RS-12371;Aceites
 Aceite Rosado 30mL;dermocosmetico;18.00;15;Alkofarma;Frasco 30mL;false;/img/productos/aceite-rosado-30-ml-1024x1024.png;RS-12372;Aceites
 Huggies Natural Care M2 Panales x 60;mama-y-bebe;38.90;50;Huggies;Paquete x 60;false;/img/productos/HUGGIES-Natural-Care-M2-Pañalesx60.jpg;RS-12373;Pañales
-Agua de Kananga;cosmeticos;16.50;10;Alkofarma;Frasco 90mL;false;/img/productos/Agua-de-Kananga-90mL.png;NSOC-51642-21-PE;Colonias
+Agua de Kananga;cosmeticos;16.50;10;Alkofarma;Frasco 90mL;false;/img/productos/Agua-de-Kananga-90mL.png;NSOC-51642-21PE;Colonias
 Aceite de Coco 30mL;cosmeticos;13.50;5;Alkofarma;Frasco 30mL;false;/img/productos/Aceite-de-Coco-30mL.png;NSOC-622242-23PE;Aceites
 Dispensador de Jabon 1000mL;cosmeticos;10.00;20;Alkofarma;Contenedor 1000mL;false;/img/productos/Dispensador-de-Jabon-1000mL.png;S/R;Accesorios
 Jabon Liquido Antibacterial Citricos 120mL;cosmeticos;5.00;20;Alkofarma;Frasco 120mL;false;/img/productos/Jabon-Liquido-Citrico-120mL.jpg;NSOC-51493-21PE;Jabones
@@ -105,12 +105,41 @@ Panadol Ninos 160mg-mL Jarabe 60mL;analgesicos;17.00;15;Genfar;Frasco 60mL;false
 Paracetamol 500mg Tabletas Tabletas x 10;analgesicos;1.00;15;Portugal;Tabs x 10;false;/img/productos/Paracetamol-500mg-10tabs-Portugal.jfif;EN-04988;Tabletas
 Tinidazol 500mg GF Tabletas Recubiertas x 8;antibioticos;7.00;20;Genfar;Tabs Recub x 8;true;/img/productos/Tinidazol-500mg-GF-80tabsrecub.webp;EE-08567;Tabletas
 Ketoprofeno 2-5 GF Gel Frasco 60g;antiinflamatorio;36.00;20;Genfar;Frasco 60g;true;/img/productos/Ketoprofeno-2-5-GF-Gel-Frasco-60g.webp;EE-14573;Geles
-Fluconazol 200mg GF Capsulas x 4;antimicotico;12.50;15;Genfar;caps x 4;true;/img/productos/Fluconazol-200mg-GF-4caps.webp;EE-00655;Cápsulas
+Fluconazol 200mg GF Capsulas x 4;antimicotico;12.50;15;Genfar;Caps x 4;true;/img/productos/Fluconazol-200mg-GF-4caps.webp;EE-00655;Cápsulas
 Nebivolol 5mg GF Tabletas x 30;betabloqueantes;54.00;10;Genfar;Tabs x 30;true;/img/productos/Nebivolol-5mg-GF-30tabs.webp;EE-06558;Tabletas
-Isoconazol 1 GF Crema Tubo 20g;antifungico;12;15;Genfar;Tubo 20g;true;/img/productos/Isoconazol-1-GF-Crema-tubo-20g.webp;EE-03899;Cremas
+Isoconazol 1 GF Crema Tubo 20g;antifungico;12.00;15;Genfar;Tubo 20g;true;/img/productos/Isoconazol-1-GF-Crema-tubo-20g.webp;EE-03899;Cremas
 Paracetamol 160mg-5mL GF Jarabe Sabor Fresa Frasco 90mL;analgesicos;7.5;20;Genfar;Frasco 90mL;false;/img/productos/Paracetamol-160mg-5mL-GF-Jarabe-Sabor-Fresa-Frasco-90mL.webp;EE-08968;Jarabes
 Plentitud FEMME 6a8;adulto-mayor;16.5;20;Plentitud;Unidades x 8;false;/img/productos/P-F-6a8-8unid.jpg;S/R;Pañales
 Plentitud Nocturna Ropa Intima Descartable 9a10;adulto-mayor;20.0;15;Plentitud;Unidades x 1;false;/img/productos/P-N-R-I-D-9a10-1unid.jpg;S/R;Pañales
 Plentitud Fresco Diario Ropa Intima Descartable 5a10;adulto-mayor;25.0;10;Plentitud;Unidades x 8;false;/img/productos/P-F-D-R-R-I-D-5a10-8unid.png;S/R;Pañales
 Plentitud Plus Men Ropa Intima Descartable 8a10;adulto-mayor;20.0;17;Plentitud;Unidades x 16;false;/img/productos/P-P-M-R-I-D-8a10-16unid.jpg;S/R;Pañales
 Plentitud Plus Fit Ropa Intima Descartable 8a10;adulto-mayor;12.5;5;Plentitud;Unidad x 1;false;/img/productos/P-P-F-R-I-D-8a10-1unid.jpg;S/R;Pañales
+Alitopic Desodorante Frasco 90mL;dermocosmetico;65.00;5;Genfar;Unidad x 1;false;/img/productos/Alitopic-Desodorante-90mL.webp;NSOC-00660-20CO;Desodorantes
+Lactacyd Pro Bio Clarity Jabón Íntimo;dermocosmetico;28.50;7;Genfar;Unidad x 1;false;/img/productos/L-P-B-C-J-I-220mL.webp;NSOC-70581-25PE;Jabones
+Lactacyd Pro Bio Neutralize Jabón Íntimo;dermocosmetico;28.50;9;Genfar;Unidad x 1;false;/img/productos/L-P-B-N-J-I-220mL.webp;NSOC-70440-25PE;Jabones
+Hidrisage Lumed Emugel 40mL;dermocosmetico;81.06;10;Genfar;Frasco 40mL;false;/img/productos/Hidrisage-Lumed-Emugel-40mL.webp;NSOC-57599-14CO;Cremas
+Isdin Eryfotona Night Ultra Fluid Frasco 50mL;dermocosmetico;139.90;15;Genfar;Frasco 50mL;false;/img/productos/Isdin-Eryfotona-Night-Ultra-Fluid-50mL.webp;NSOC-34857-24CO;Sérums
+Hidrisage Lumed Serum Nocturno Frasco 20mL;dermocosmetico;164.00;20;Genfar;Frasco 20mL;false;/img/productos/Hidrisage-Lumed-Serum-Nocturno-20mL.webp;NSOC-93326-19CO;Sérums
+Sulfadiazina de Plata 1% Crema 30g;antibioticos;12.00;20;Genfar;Crema 30g;true;/img/productos/Sulfadiazina-de-Plata-1-ViaTop-Crema-30g.webp;EE-00922;Cremas
+Mupirocina 2% Ungüento 15g;antibioticos;20.15;15;Genfar;Ungüento 15g;true;/img/productos/MUPIROCINA-2-AC-Unguento-Tubo-15g.webp;EN-05122;Ungüentos
+Aciclovir 5% Tubo 15g;antibioticos;8.02;15;Genfar;Tubo 15g;true;/img/productos/Aciclovir-5-GF-Unguento-15g.webp;EE-04601;Cremas
+Tetralan SP 1% Tubo 6g;antibioticos;18.00;10;Lansier;Tubo 6g;true;/img/productos/Tetralan-SP-1-Unguento-Oftalmico.webp;EE-12363;Ungüentos
+Modulcass 5% Crema 10g;antibioticos;168.90;5;Cassará;Tubo 10g;true;/img/productos/Modulcass-5-Crema-10g.webp;EE-03095;Cremas
+Furacin 0.2% Pomada 35g;antibioticos;68.59;10;Medifarma;Tubo 35g;true;/img/productos/Furacin-02-Pomada-35g.webp;EN-03639;Ungüentos
+Dermaside B 3.5mg+400UI+5000UI/g Ungüento 15g;antibioticos;23.15;5;Sherfarma;Ungüento 15g;true;/img/productos/Dermaside-B-3-5mg+400UI+5000UI-g-Unguento-15g.webp;EN-08968;Ungüentos
+Roxtil B 1% + 0.1% + 0.05% Crema 20g;antibioticos;9.92;10;Roxfarma;Crema 20g;true;/img/productos/Roxtil-B-1+0-1+0-005-Crema-20g.webp;EN-04807;Cremas
+Tetralysal 300mg Cápsulas x 16;antibioticos;125.92;10;Galderma;Caps x 16;true;/img/productos/Tetralysal-300mg-Capsulas-16unid.webp;EE-00646;Cápsulas
+Ácido Fusidico 2% GF Crema 15g;antibioticos;21.08;8;Genfar;Tubo 15g;true;/img/productos/Acido-Fusidico-2-GF-Crema-15g.webp;EE-03950;Cremas
+Mupirox 2% Ungüento - Tubo 15g;antibioticos;27.00;10;AC FARMA;Tubo 15g;true;/img/productos/MUPIROX-2-Unguento-15g.webp;EN-00763;Ungüentos
+Mupirox 2% Crema - Tubo 15g;antibioticos;46.48;15;AC FARMA;Tubo 15g;true;/img/productos/MUPIROX-2-Crema-Tubo-15g.webp;EN-07868;Cremas
+Ivercrem 1% Crema - Tubo 30g;antibioticos;75.30;20;Cassará;Tubo 30g;true;/img/productos/Ivercrem-1-Crema-Tubo-30g.webp;EE-05631;Cremas
+Neotracina Plus 0.3500g + 40000UI + 50000UI / 100g Ungüento - Tubo 15g;antibioticos;25.10;25;Vital;Tubo 15g;true;/img/productos/Neotracina-Plus-Unguento-Tubo-15g.webp;EN-05778;Ungüentos
+Rozex 0.75% Crema - Tubo 30g;antibioticos;95.90;20;Galderma;Tubo 30g;true;/img/productos/Rozex-0-75-Crema-Tubo-30g.webp;EE-02967;Cremas
+Ácido Fusidico 2% FI Crema - Tubo 15g;antibioticos;33.41;15;Farmindustria;Tubo 15g;true;/img/productos/Acido-Fusidico-2-FI-Crema-Tubo-15g.webp;EN-02105;Cremas
+NIOFEN 2% Crema - Tubo 15g;antibioticos;51.09;10;Abbott;Tubo 15g;true;/img/productos/NIOFEN-2-Crema-Tubo-15g.webp;EN-02597;Cremas
+FUSIMED B 2% + 0.1% Emulsión Tópica Tubo 50g;antibioticos;66.90;15;Cassará;Tubo 50g;true;/img/productos/FUSIMED-B-2+0-1-Emulsion-Topica-Tubo-50g.webp;EE-09919;Cremas
+GERMIDERM C Crema Dérmica - Tubo 20g;antibioticos;20.01;10;Rowe;Tubo 20g;true;/img/productos/GERMIDERM-C-Crema-Dermica-Tubo-20g.webp;EN-06048;Cremas
+Aciclovir 5% FI Crema - Tubo 5g;antibioticos;3.00;15;Farmindustria;Tubo 5g;true;/img/productos/Aciclovir-5-FI-Crema-Tubo-5g.webp;EN-00023;Cremas
+DIPHA SCBIX 5% Crema - Tubo 60g;antibioticos;64.99;10;Diphasac;Tubo 60g;true;/img/productos/Dipha-Scbix-5-Crema-Tubo-60g.webp;EE-07752;Cremas
+Topimicyn NF 1% + 0.35% + 500000UI + 40000UI Ungüento - Tubo 14g;antibioticos;20.51;15;Roxfarma;Tubo 14g;true;/img/productos/Topimicyn-Unguento-Tubo-14g.webp;EN-00386;Ungüentos
+DIPHA SCBIX 5% Crema - Tubo 30g;antibioticos;45.01;13;Diphasac;Tubo 30g;true;/img/productos/DIPHA-SCBIX-5-Crema-Tubo-30g.webp;EE-07752;Cremas
