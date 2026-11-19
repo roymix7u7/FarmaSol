@@ -64,48 +64,49 @@ public class DataSeeder implements CommandLineRunner {
         java.util.Set<String> existentes = new java.util.HashSet<>();
         promocionRepository.findAll().forEach(p -> existentes.add(p.getTitulo()));
 
+        // Solo unos pocos productos elegidos: con promociones por categoría
+        // entera, más de un tercio del catálogo salía rebajado.
         int creadas = 0;
-        creadas += crearPromoDemo(existentes, "Semana de la salud: 15% en analgésicos y antigripales",
-                "Descuento en medicamentos para el dolor, la fiebre y el resfrío.",
+        creadas += crearPromoDemo(existentes, "Ofertas de la semana: 15% de descuento",
+                "Descuento en productos seleccionados de farmacia y dermocosmética.",
                 com.farmasol.backend.model.enums.TipoDescuento.PORCENTAJE, "15", desde, hasta,
-                "analgesicos", "antigripales");
-        creadas += crearPromoDemo(existentes, "Dermocosmética con 20% de descuento",
-                "Protectores solares, cremas y tratamientos para el cuidado de la piel.",
-                com.farmasol.backend.model.enums.TipoDescuento.PORCENTAJE, "20", desde, hasta,
-                "dermocosmetico");
-        creadas += crearPromoDemo(existentes, "Mamá y Bebé: S/ 5 menos en cada producto",
-                "Pañales, nutrición y cuidado del bebé con S/ 5 de descuento por unidad.",
+                "Actron Ibuprofeno 400mg Capsula x 1",
+                "Panadol Antigripal NF Sobres x 2",
+                "Alma Secret Crema Solar Facial SPF50 50mL",
+                "Skin Repair Crema 75mL");
+        creadas += crearPromoDemo(existentes, "Huggies Natural Care: S/ 5 menos por paquete",
+                "Pañales Huggies Natural Care con S/ 5 de descuento.",
                 com.farmasol.backend.model.enums.TipoDescuento.MONTO, "5", desde, hasta,
-                "mama-y-bebe");
+                "Huggies Natural Care M2 Panales x 60");
         if (creadas > 0) log.info("Seed: {} promociones de ejemplo creadas (vigentes hasta {})", creadas, hasta);
 
         // Un banner que anuncia las ofertas en el carrusel del inicio, mientras duren.
-        String tituloBanner = "Semana de la salud: hasta 20% de descuento";
+        String tituloBanner = "Ofertas de la semana";
         boolean hayBanner = bannerRepository.findAll().stream()
                 .anyMatch(b -> tituloBanner.equals(b.getTitulo()));
         if (!hayBanner) {
             bannerRepository.save(Banner.builder()
                     .titulo(tituloBanner)
-                    .subtitulo("15% en analgésicos y antigripales, 20% en dermocosmética y S/ 5 menos en Mamá y Bebé.")
-                    .textoBoton("Ver ofertas").enlace("/categoria/farmacia")
+                    .subtitulo("15% en Actron, Panadol Antigripal y cremas seleccionadas, y S/ 5 menos en pañales Huggies.")
                     .imagenUrl("/img/menu01-farmacia.png").colorFondo("#e53935")
                     .fechaInicio(desde).fechaFin(hasta)
                     .orden(0).activo(true).build());
-            log.info("Seed: banner de la Semana de la salud creado");
+            log.info("Seed: banner de Ofertas de la semana creado");
         }
     }
 
+    /** Crea una promoción para los productos con esos nombres exactos, si aún no existe. */
     private int crearPromoDemo(java.util.Set<String> existentes, String titulo, String descripcion,
                                com.farmasol.backend.model.enums.TipoDescuento tipo, String valor,
-                               java.time.LocalDate desde, java.time.LocalDate hasta, String... slugs) {
+                               java.time.LocalDate desde, java.time.LocalDate hasta, String... nombres) {
         if (existentes.contains(titulo)) return 0;
-        java.util.Set<Categoria> categorias = new java.util.HashSet<>();
-        for (String slug : slugs) {
-            categoriaRepository.findBySlug(slug).ifPresentOrElse(categorias::add,
-                    () -> log.warn("Promoción '{}': no existe la categoría '{}'", titulo, slug));
+        java.util.Set<Producto> productos = new java.util.HashSet<>();
+        for (String nombre : nombres) {
+            productoRepository.findFirstByNombre(nombre).ifPresentOrElse(productos::add,
+                    () -> log.warn("Promoción '{}': no existe el producto '{}'", titulo, nombre));
         }
-        // Sin ninguna categoría la promoción no aplicaría a nada: mejor no crearla.
-        if (categorias.isEmpty()) return 0;
+        // Sin ningún producto la promoción no aplicaría a nada: mejor no crearla.
+        if (productos.isEmpty()) return 0;
         promocionRepository.save(Promocion.builder()
                 .titulo(titulo)
                 .descripcion(descripcion)
@@ -116,7 +117,7 @@ public class DataSeeder implements CommandLineRunner {
                 .mostrarEnCarrusel(false)
                 .orden(0)
                 .activo(true)
-                .categorias(categorias)
+                .productos(productos)
                 .build());
         return 1;
     }
