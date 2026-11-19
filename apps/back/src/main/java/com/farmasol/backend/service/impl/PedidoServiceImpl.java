@@ -246,6 +246,14 @@ public class PedidoServiceImpl implements PedidoService {
 // =========================================================================
     // MÉTODO IMPLEMENTADO PARA LA GENERACIÓN DEL COMPROBANTE PDF
     // =========================================================================
+
+    /** Una línea de los totales del comprobante, alineada a la derecha. */
+    private static Paragraph lineaTotal(String texto, Font fuente) {
+        Paragraph p = new Paragraph(texto, fuente);
+        p.setAlignment(Element.ALIGN_RIGHT);
+        return p;
+    }
+
    @Override
     @Transactional(readOnly = true)
     public byte[] generarComprobantePdf(Long idPedido) {
@@ -280,8 +288,12 @@ public class PedidoServiceImpl implements PedidoService {
 
             document.add(new Paragraph("Código de Pedido: " + pedido.getCodigoPedido(), fontNegrita));
             document.add(new Paragraph("Cliente: " + pedido.getCliente().getNombres() + " " + pedido.getCliente().getApellidos(), fontNormal));
-            document.add(new Paragraph("Fecha de Pedido: " + pedido.getFechaPedido(), fontNormal));
-            document.add(new Paragraph("Tipo de Entrega: " + pedido.getTipoEntrega(), fontNormal));
+            String fecha = pedido.getFechaPedido() != null
+                    ? pedido.getFechaPedido().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                    : "—";
+            document.add(new Paragraph("Fecha de pedido: " + fecha, fontNormal));
+            document.add(new Paragraph("Entrega: " + (pedido.getTipoEntrega() == TipoEntrega.DELIVERY
+                    ? "Envío a domicilio" : "Recojo en botica"), fontNormal));
             
             if (pedido.getRecojoSede() != null) {
                 document.add(new Paragraph("Sede de Recojo: " + pedido.getRecojoSede(), fontNormal));
@@ -293,11 +305,14 @@ public class PedidoServiceImpl implements PedidoService {
             document.add(espacio);
 
             // Tabla de Detalle
-            PdfPTable table = new PdfPTable(4);
+            // "P. regular" y "Dscto." por unidad, para que se entienda el subtotal:
+            // antes la columna mostraba el precio sin promoción pero el subtotal ya
+            // venía con descuento, y cantidad x precio no daba el subtotal.
+            PdfPTable table = new PdfPTable(5);
             table.setWidthPercentage(100);
-            table.setWidths(new float[]{4f, 1f, 1.5f, 1.5f});
+            table.setWidths(new float[]{4f, 0.9f, 1.4f, 1.3f, 1.5f});
 
-            String[] headers = {"Producto", "Cant.", "P. Unitario", "Subtotal"};
+            String[] headers = {"Producto", "Cant.", "P. regular", "Dscto. c/u", "Subtotal"};
             for (String header : headers) {
                 PdfPCell cell = new PdfPCell(new Phrase(header, FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, BaseColor.WHITE)));
                 cell.setBackgroundColor(colorVerde);
@@ -317,6 +332,12 @@ public class PedidoServiceImpl implements PedidoService {
                 cellPrecio.setHorizontalAlignment(Element.ALIGN_RIGHT);
                 table.addCell(cellPrecio);
 
+                BigDecimal dscto = d.getDescuentoUnitario() != null ? d.getDescuentoUnitario() : BigDecimal.ZERO;
+                PdfPCell cellDscto = new PdfPCell(new Phrase(
+                        dscto.compareTo(BigDecimal.ZERO) > 0 ? "-S/ " + String.format("%.2f", dscto) : "—", fontNormal));
+                cellDscto.setHorizontalAlignment(Element.ALIGN_RIGHT);
+                table.addCell(cellDscto);
+
                 PdfPCell cellSub = new PdfPCell(new Phrase("S/ " + String.format("%.2f", d.getSubtotal()), fontNormal));
                 cellSub.setHorizontalAlignment(Element.ALIGN_RIGHT);
                 table.addCell(cellSub);
@@ -328,13 +349,26 @@ public class PedidoServiceImpl implements PedidoService {
             Paragraph totales = new Paragraph();
             totales.setAlignment(Element.ALIGN_RIGHT);
             totales.setSpacingBefore(15);
-            totales.add(new Paragraph("Subtotal: S/ " + String.format("%.2f", pedido.getSubtotal()), fontNormal));
-            totales.add(new Paragraph("Costo de Envío: S/ " + String.format("%.2f", pedido.getCostoEnvio()), fontNormal));
-            if (pedido.getDescuentoTotal() != null && pedido.getDescuentoTotal().compareTo(BigDecimal.ZERO) > 0) {
-                totales.add(new Paragraph("Descuentos: -S/ " + String.format("%.2f", pedido.getDescuentoTotal()), fontNormal));
+            // Mismo orden que en la tienda: regular, menos descuento, más envío = total.
+            boolean hayDescuento = pedido.getDescuentoTotal() != null
+                    && pedido.getDescuentoTotal().compareTo(BigDecimal.ZERO) > 0;
+            BigDecimal envio = pedido.getCostoEnvio() != null ? pedido.getCostoEnvio() : BigDecimal.ZERO;
+            totales.add(lineaTotal((hayDescuento ? "Precio regular: S/ " : "Subtotal: S/ ")
+                    + String.format("%.2f", pedido.getSubtotal()), fontNormal));
+            if (hayDescuento) {
+                totales.add(lineaTotal("Descuento por promociones: -S/ "
+                        + String.format("%.2f", pedido.getDescuentoTotal()), FontFactory.getFont(FontFactory.HELVETICA, 10, colorVerde)));
             }
-            totales.add(new Paragraph("Total Pagado: S/ " + String.format("%.2f", pedido.getTotal()), FontFactory.getFont(FontFactory.HELVETICA_BOLD, 13, colorVerde)));
-            
+            String textoEntrega = pedido.getTipoEntrega() == TipoEntrega.DELIVERY ? "Envío a domicilio" : "Recojo en botica";
+            totales.add(lineaTotal(textoEntrega + ": "
+                    + (envio.compareTo(BigDecimal.ZERO) > 0 ? "S/ " + String.format("%.2f", envio) : "Gratis"), fontNormal));
+            totales.add(lineaTotal("Total pagado: S/ " + String.format("%.2f", pedido.getTotal()),
+                    FontFactory.getFont(FontFactory.HELVETICA_BOLD, 13, colorVerde)));
+            if (hayDescuento) {
+                totales.add(lineaTotal("Ahorraste S/ " + String.format("%.2f", pedido.getDescuentoTotal())
+                        + " con las promociones de esta compra.", FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 9, colorVerde)));
+            }
+
             document.add(totales);
 
             document.close();

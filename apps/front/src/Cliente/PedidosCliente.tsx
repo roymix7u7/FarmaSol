@@ -2,6 +2,17 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { pedidosApi } from '../api/pedidos';
 import { api, mensajeDeError } from '../api/client';
+import { desglosar, PrecioUnitario, ResumenPrecios, type LineaPrecio } from '../shared/ResumenPrecios';
+
+/** Precio de una línea del pedido. Los pedidos viejos pueden no traer el unitario. */
+function lineaDe(d: PedidoDetalle): LineaPrecio {
+  const cantidad = d.cantidad || 1;
+  return {
+    precioRegular: d.precioUnitario ?? (d.subtotal || 0) / cantidad,
+    descuentoUnitario: d.descuentoUnitario ?? 0,
+    cantidad,
+  };
+}
 
 export interface PedidoDetalle {
   id?: number;
@@ -9,6 +20,8 @@ export interface PedidoDetalle {
   nombreProducto: string;
   cantidad: number;
   precioUnitario?: number;
+  /** Cuánto se descontó por unidad con la promoción vigente al comprar. */
+  descuentoUnitario?: number;
   subtotal: number;
   idRecetaVigente?: number;
   requiereReceta?: boolean;
@@ -359,7 +372,7 @@ export function PedidosCliente() {
               {/* Barra de Seguimiento en Vivo Dinámica */}
               {pedidoSeleccionado.estado !== 'CANCELADO' && (
                 <div style={{ background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 12, padding: '14px 18px', marginBottom: 20 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 10 }}>Seguimiento de envío</span>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'block', marginBottom: 10 }}>Seguimiento del pedido</span>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 12, fontWeight: 600, flexWrap: 'wrap', gap: 8 }}>
                     <span style={{ color: pasoPagado ? '#059669' : '#9ca3af' }}>{pasoPagado ? '✅' : '⏳'} Pagado</span> ─── 
                     <span style={{ color: pasoValidado ? '#059669' : '#9ca3af' }}>{pasoValidado ? '✅' : '⏳'} Validado</span> ─── 
@@ -382,10 +395,22 @@ export function PedidosCliente() {
                         </div>
                         <div>
                           <strong style={{ display: 'block', color: '#111827', fontSize: 14, marginBottom: 2 }}>{d.nombreProducto}</strong>
-                          <span style={{ fontSize: 12, color: '#6b7280' }}>Cantidad: {d.cantidad} unidades • S/ {((d.subtotal || 0) / (d.cantidad || 1)).toFixed(2)} c/u</span>
+                          <span style={{ fontSize: 12, color: '#6b7280', display: 'inline-flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+                            {d.cantidad} {d.cantidad === 1 ? 'unidad' : 'unidades'} ×
+                            <PrecioUnitario linea={lineaDe(d)} enLinea />
+                          </span>
                         </div>
                       </div>
-                      <span style={{ fontWeight: 800, color: '#111827', fontSize: 15 }}>S/ {(d.subtotal || 0).toFixed(2)}</span>
+                      <span style={{ textAlign: 'right' }}>
+                        <strong style={{ display: 'block', fontWeight: 800, color: '#111827', fontSize: 15 }}>
+                          S/ {(d.subtotal || 0).toFixed(2)}
+                        </strong>
+                        {(d.descuentoUnitario ?? 0) > 0 && (
+                          <span className="precio-linea-ahorro">
+                            Ahorraste S/ {((d.descuentoUnitario ?? 0) * d.cantidad).toFixed(2)}
+                          </span>
+                        )}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -408,19 +433,17 @@ export function PedidosCliente() {
               )}
 
               {/* Totales */}
-              <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 14, marginBottom: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#6b7280' }}>
-                  <span>Subtotal</span>
-                  <span>S/ {(pedidoSeleccionado.subtotal || pedidoSeleccionado.total).toFixed(2)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#6b7280' }}>
-                  <span>Costo de Envío</span>
-                  <span style={{ color: '#059669', fontWeight: 600 }}>Gratis</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 16, fontWeight: 800, color: '#111827', marginTop: 4 }}>
-                  <span>Total Pagado</span>
-                  <span style={{ color: '#059669' }}>S/ {(pedidoSeleccionado.total || 0).toFixed(2)}</span>
-                </div>
+              <div style={{ borderTop: '1px solid #e5e7eb', paddingTop: 14, marginBottom: 20 }}>
+                <ResumenPrecios
+                  desglose={desglosar(
+                    (pedidoSeleccionado.detalles ?? []).map(lineaDe),
+                    pedidoSeleccionado.total || 0,
+                    pedidoSeleccionado.costoEnvio || 0,
+                  )}
+                  entrega={pedidoSeleccionado.tipoEntrega === 'DELIVERY' ? 'Envío a domicilio' : 'Recojo en botica'}
+                  etiquetaTotal={pedidoSeleccionado.estado === 'CANCELADO' ? 'Total (cancelado)' : 'Total pagado'}
+                  pagado
+                />
               </div>
 
               {/* Botones inferiores */}

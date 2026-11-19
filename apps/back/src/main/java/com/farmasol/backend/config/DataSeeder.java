@@ -126,7 +126,7 @@ public class DataSeeder implements CommandLineRunner {
         if (bannerRepository.count() > 0) return;
         bannerRepository.save(Banner.builder()
                 .titulo("Tu salud, sin salir de casa")
-                .subtitulo("Medicamentos con registro sanitario, delivery en Lima o recojo gratis en botica.")
+                .subtitulo("Medicamentos con registro sanitario. Compra online y recógelo gratis en tu botica.")
                 .textoBoton("Ver farmacia").enlace("/categoria/farmacia")
                 .imagenUrl("/img/menu01-farmacia.png").colorFondo("#2ea471")
                 .orden(1).activo(true).build());

@@ -5,11 +5,14 @@ import { recetasApi, validarArchivoReceta } from '../api/recetas';
 import { useAuth } from '../auth/AuthContext';
 import { mensajeDeError } from '../api/client';
 import '../Css/Checkout.css';
+import { desglosar, PrecioUnitario, ResumenPrecios, SubtotalLinea } from '../shared/ResumenPrecios';
 
 interface ItemCarritoConReceta {
   idProducto: number;
   nombre: string;
+  precioUnitario: number;
   precioFinal: number;
+  descuentoUnitario: number;
   cantidad: number;
   subtotal: number;
   imagenUrl?: string | null;
@@ -194,7 +197,7 @@ const tieneProductosConReceta = carrito?.items.some((prod: any) => {
             <div className="cart-table">
               <div className="table-header">
                 <span className="col-prod">PRODUCTO</span>
-                <span className="col-price">P. UNI</span>
+                <span className="col-price">PRECIO</span>
                 <span className="col-qty">CANTIDAD</span>
                 <span className="col-sub">SUBTOTAL</span>
               </div>
@@ -255,7 +258,11 @@ const tieneProductosConReceta = carrito?.items.some((prod: any) => {
                         </button>
                       </div>
                     </div>
-                    <div className="col-price">S/ {prod.precioFinal.toFixed(2)}</div>
+                    <div className="col-price">
+                      <PrecioUnitario
+                        linea={{ precioRegular: prod.precioUnitario, descuentoUnitario: prod.descuentoUnitario, cantidad: prod.cantidad }}
+                      />
+                    </div>
                     <div className="col-qty">
                       <div className="qty-box">
                         <button onClick={() => cambiarCantidad(prod.idProducto, -1, prod.cantidad)}>
@@ -267,7 +274,12 @@ const tieneProductosConReceta = carrito?.items.some((prod: any) => {
                         </button>
                       </div>
                     </div>
-                    <div className="col-sub">S/ {prod.subtotal.toFixed(2)}</div>
+                    <div className="col-sub">
+                      <SubtotalLinea
+                        linea={{ precioRegular: prod.precioUnitario, descuentoUnitario: prod.descuentoUnitario, cantidad: prod.cantidad }}
+                        subtotal={prod.subtotal}
+                      />
+                    </div>
                   </div>
                 );
               })}
@@ -283,26 +295,18 @@ const tieneProductosConReceta = carrito?.items.some((prod: any) => {
           <aside className="cart-summary-section">
             <h3>Resumen de Compra</h3>
 
-            <div className="summary-details">
-              <div className="summary-line">
-                <span>Subtotal</span>
-                <span className="sum-value">S/ {carrito.subtotal.toFixed(2)}</span>
-              </div>
-              {carrito.descuentoTotal > 0 && (
-                <div className="summary-line">
-                  <span>Descuentos</span>
-                  <span className="sum-free">− S/ {carrito.descuentoTotal.toFixed(2)}</span>
-                </div>
+            <ResumenPrecios
+              desglose={desglosar(
+                carrito.items.map((i) => ({
+                  precioRegular: i.precioUnitario,
+                  descuentoUnitario: i.descuentoUnitario,
+                  cantidad: i.cantidad,
+                })),
+                carrito.total,
               )}
-            </div>
-
-            <div className="summary-total-box">
-              <div className="total-line">
-                <span>Total a Pagar</span>
-                <span className="total-price">S/ {carrito.total.toFixed(2)}</span>
-              </div>
-              <p className="tax-info">Incluye IGV y comprobante electrónico.</p>
-            </div>
+              entrega="Recojo en botica"
+              nota="Precios con IGV incluido. Recibirás tu comprobante electrónico."
+            />
 
             <button
               type="button"
