@@ -16,7 +16,7 @@ export function BuscarCliente() {
   const [cargando, setCargando] = useState(true);
   const [errorCarga, setErrorCarga] = useState('');
 
-  const { agregar, error, toast } = useAgregarAlCarrito();
+  const { agregar, error, avisos } = useAgregarAlCarrito();
 
   useEffect(() => {
     if (!consulta) {
@@ -116,13 +116,7 @@ export function BuscarCliente() {
               Ningún producto cumple con los filtros que elegiste.
             </p>
           ) : (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
-                gap: 16,
-              }}
-            >
+            <div className="grilla-productos columnas-4">
               {filtrados.map((prod) => (
                 <TarjetaProducto key={prod.id} producto={prod} onAgregar={agregar} />
               ))}
@@ -131,24 +125,7 @@ export function BuscarCliente() {
         </div>
       )}
 
-      {toast && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 24,
-            right: 24,
-            background: 'var(--verde)',
-            color: '#fff',
-            padding: '12px 20px',
-            borderRadius: 10,
-            fontWeight: 600,
-            boxShadow: '0 8px 20px rgba(5, 150, 105, 0.35)',
-            zIndex: 2000,
-          }}
-        >
-          {toast}
-        </div>
-      )}
+      {avisos}
     </div>
   );
 }

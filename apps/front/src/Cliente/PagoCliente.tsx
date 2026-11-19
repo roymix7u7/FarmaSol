@@ -4,6 +4,25 @@ import { useAuth } from '../auth/AuthContext';
 import { carritoApi, type Carrito } from '../api/carrito';
 import { api, mensajeDeError } from '../api/client';
 import '../Css/Checkout.css';
+import {
+  desglosar,
+  PrecioUnitario,
+  ResumenPrecios,
+  SubtotalLinea,
+  type Desglose,
+} from '../shared/ResumenPrecios';
+
+/** Pasa los ítems del carrito al formato del desglose de precios. */
+function desgloseDe(carrito: Carrito): Desglose {
+  return desglosar(
+    carrito.items.map((i) => ({
+      precioRegular: i.precioUnitario,
+      descuentoUnitario: i.descuentoUnitario,
+      cantidad: i.cantidad,
+    })),
+    carrito.total,
+  );
+}
 
 export function PagoCliente() {
   const { user } = useAuth();
@@ -14,6 +33,8 @@ export function PagoCliente() {
   const [procesando, setProcesando] = useState(false);
   const [error, setError] = useState('');
   const [codigo, setCodigo] = useState<string | null>(null);
+  // Lo que se pagó, para mostrarlo en la confirmación: el carrito ya queda vacío.
+  const [pagado, setPagado] = useState<Desglose | null>(null);
 
   // Método principal: YAPE o VISA
   const [metodoPago, setMetodoPago] = useState<'YAPE' | 'VISA'>('YAPE');
@@ -115,6 +136,7 @@ export function PagoCliente() {
         : 'PEDIDO-OK';
 
       localStorage.removeItem('datosRecojo');
+      if (carrito) setPagado(desgloseDe(carrito));
       setCodigo(codigos);
     } catch (err) {
       setError(mensajeDeError(err, 'No se pudo confirmar el pedido'));
@@ -136,23 +158,45 @@ export function PagoCliente() {
         <p style={{ fontSize: 20, fontWeight: 700, color: '#059669', marginBottom: 24 }}>
           {codigo}
         </p>
+        {pagado && (
+          <div className="confirmacion-pago">
+            <ResumenPrecios desglose={pagado} entrega="Recojo en botica" etiquetaTotal="Total pagado" pagado />
+          </div>
+        )}
         <p style={{ color: '#6b7280', fontSize: 14, marginBottom: 24 }}>
           Acércate a la sede elegida con tu DNI para recogerlo.
         </p>
-        <Link
-          to="/"
-          style={{
-            display: 'inline-block',
-            padding: '12px 28px',
-            background: '#059669',
-            color: '#fff',
-            borderRadius: 10,
-            fontWeight: 600,
-            textDecoration: 'none',
-          }}
-        >
-          Volver a la tienda
-        </Link>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Link
+            to="/mis-pedidos"
+            style={{
+              display: 'inline-block',
+              padding: '12px 24px',
+              background: '#059669',
+              color: '#fff',
+              borderRadius: 10,
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            Ver mis pedidos
+          </Link>
+          <Link
+            to="/"
+            style={{
+              display: 'inline-block',
+              padding: '12px 24px',
+              background: '#fff',
+              color: '#059669',
+              border: '1.5px solid #059669',
+              borderRadius: 10,
+              fontWeight: 600,
+              textDecoration: 'none',
+            }}
+          >
+            Volver a la tienda
+          </Link>
+        </div>
       </div>
     );
   }
@@ -177,7 +221,7 @@ export function PagoCliente() {
       <div className="checkout-container">
         <header className="checkout-header-card">
           <div className="logo-container" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-            <img src="/img/farmsol.png" alt="FarmaSOL Logo" className="logo-img" />
+            <img src="/img/farmsol-transparente.png" alt="FarmaSOL Logo" className="logo-img" />
           </div>
 
           <div className="checkout-steps">
@@ -403,7 +447,7 @@ export function PagoCliente() {
             <div className="cart-table">
               <div className="table-header">
                 <span className="col-prod">PRODUCTO</span>
-                <span className="col-price">P. UNI</span>
+                <span className="col-price">PRECIO</span>
                 <span className="col-qty">CANT.</span>
                 <span className="col-sub">SUBTOTAL</span>
               </div>
@@ -415,9 +459,18 @@ export function PagoCliente() {
                       <h4>{prod.nombre}</h4>
                     </div>
                   </div>
-                  <div className="col-price">S/ {prod.precioFinal.toFixed(2)}</div>
+                  <div className="col-price">
+                    <PrecioUnitario
+                      linea={{ precioRegular: prod.precioUnitario, descuentoUnitario: prod.descuentoUnitario, cantidad: prod.cantidad }}
+                    />
+                  </div>
                   <div className="col-qty">{prod.cantidad}</div>
-                  <div className="col-sub">S/ {prod.subtotal.toFixed(2)}</div>
+                  <div className="col-sub">
+                    <SubtotalLinea
+                      linea={{ precioRegular: prod.precioUnitario, descuentoUnitario: prod.descuentoUnitario, cantidad: prod.cantidad }}
+                      subtotal={prod.subtotal}
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -426,26 +479,11 @@ export function PagoCliente() {
           <aside className="cart-summary-section">
             <h3>Resumen</h3>
 
-            <div className="summary-details">
-              <div className="summary-line">
-                <span>Subtotal</span>
-                <span className="sum-value">S/ {carrito.subtotal.toFixed(2)}</span>
-              </div>
-              {carrito.descuentoTotal > 0 && (
-                <div className="summary-line">
-                  <span>Descuentos</span>
-                  <span className="sum-free">− S/ {carrito.descuentoTotal.toFixed(2)}</span>
-                </div>
-              )}
-            </div>
-
-            <div className="summary-total-box">
-              <div className="total-line">
-                <span>Total a Pagar</span>
-                <span className="total-price">S/ {carrito.total.toFixed(2)}</span>
-              </div>
-              <p className="tax-info">Incluye IGV.</p>
-            </div>
+            <ResumenPrecios
+              desglose={desgloseDe(carrito)}
+              entrega="Recojo en botica"
+              nota="Precios con IGV incluido."
+            />
 
             <button
               type="button"

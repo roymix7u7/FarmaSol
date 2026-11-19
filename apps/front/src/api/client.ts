@@ -23,7 +23,10 @@ export function borrarSesion(tipo: TipoUsuario) {
 }
 
 export const api = axios.create({
-  baseURL: 'http://localhost:8080/api', // Apuntando directo al puerto actual de Spring Boot
+  // Ruta relativa: el proxy de Vite (vite.config.ts) la reenvía al backend. Con
+  // 'http://localhost:8080' fijo, quien abría la app desde otra PC (un túnel o la
+  // red local) le pedía los datos a su propia máquina y no veía nada.
+  baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
 });
 

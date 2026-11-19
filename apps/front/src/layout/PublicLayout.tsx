@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { catalogoApi } from '../api/catalogo';
+import { carritoApi } from '../api/carrito';
+import { EVENTO_CARRITO } from '../shared/compraPendiente';
+import { ModalLoginRequerido } from '../shared/ModalLoginRequerido';
 import type { Categoria } from '../types';
 import '../Css/PublicLayout.css';
 
@@ -11,11 +14,39 @@ export function PublicLayout() {
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [busqueda, setBusqueda] = useState('');
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const [enCarrito, setEnCarrito] = useState(0);
+  const [pideLogin, setPideLogin] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const esCliente = user?.tipo === 'CLIENTE';
 
   useEffect(() => {
     catalogoApi.categoriasArbol().then(setCategorias).catch(() => setCategorias([]));
   }, []);
+
+  // Contador del carrito: se pide al entrar y cada vez que algo se agrega.
+  useEffect(() => {
+    if (!esCliente) {
+      setEnCarrito(0);
+      return;
+    }
+    const actualizar = () =>
+      carritoApi
+        .ver()
+        .then((c) => setEnCarrito(c.items.reduce((suma, i) => suma + i.cantidad, 0)))
+        .catch(() => setEnCarrito(0));
+    actualizar();
+    window.addEventListener(EVENTO_CARRITO, actualizar);
+    return () => window.removeEventListener(EVENTO_CARRITO, actualizar);
+  }, [esCliente]);
+
+  const cerrarModal = useCallback(() => setPideLogin(false), []);
+
+  function onClickCarrito(e: React.MouseEvent) {
+    if (!user) {
+      e.preventDefault();
+      setPideLogin(true);
+    }
+  }
 
   useEffect(() => {
     function onClickFuera(e: MouseEvent) {
@@ -105,8 +136,18 @@ export function PublicLayout() {
               </Link>
             )}
 
-            <Link to="/carrito" className="pub-cart" aria-label="Mi carrito">
-              <span aria-hidden>🛒</span>
+            <Link
+              to="/carrito"
+              className="pub-cart"
+              aria-label={enCarrito > 0 ? `Mi carrito, ${enCarrito} productos` : 'Mi carrito'}
+              onClick={onClickCarrito}
+            >
+              <span className="pub-cart-icono" aria-hidden>
+                🛒
+                {enCarrito > 0 && (
+                  <span className="pub-cart-badge">{enCarrito > 99 ? '99+' : enCarrito}</span>
+                )}
+              </span>
               <span className="pub-cart-label">Mi carrito</span>
             </Link>
           </div>
@@ -134,6 +175,8 @@ export function PublicLayout() {
       <main className="pub-main">
         <Outlet />
       </main>
+
+      {pideLogin && <ModalLoginRequerido onCerrar={cerrarModal} />}
 
       <footer className="pub-footer">
         <p>FarmaSol · Farmacia y Botica · Todos los productos con registro sanitario</p>

@@ -1,19 +1,37 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { catalogoApi } from '../api/catalogo';
-import { carritoApi } from '../api/carrito';
-import { useAuth } from '../auth/AuthContext';
-import { mensajeDeError } from '../api/client';
-import type { Producto } from '../types';
+import { bannersApi } from '../api/banners';
+import { CarruselBanners, type Diapositiva } from '../shared/CarruselBanners';
+import { TarjetaProducto } from '../shared/TarjetaProducto';
+import { useAgregarAlCarrito } from '../shared/useAgregarAlCarrito';
+import type { Categoria, Producto } from '../types';
+import '../Css/Tienda.css';
+
+/** De a cuántos productos se muestra la lista de "todos" (son más de cien). */
+const POR_PAGINA = 20;
+
+/** Iconos de las categorías que ya tienen dibujo; el resto usa un emoji. */
+const ICONO_CATEGORIA: Record<string, string> = {
+  farmacia: '/img/menu01-farmacia.png',
+  'adulto-mayor': '/img/menu02-anciano.png',
+  'mama-y-bebe': '/img/menu03-cuna.png',
+  dermocosmetico: '/img/menu04-dermatologia.png',
+};
+const EMOJI_CATEGORIA: Record<string, string> = {
+  galenicos: '🧪',
+  cosmeticos: '💄',
+  'dispositivos-medicos': '🩺',
+};
 
 export function HomeCliente() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+  const { agregar, error, avisos } = useAgregarAlCarrito();
 
   const [productos, setProductos] = useState<Producto[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  const [banners, setBanners] = useState<Diapositiva[]>([]);
   const [cargando, setCargando] = useState(true);
-  const [error, setError] = useState('');
-  const [toast, setToast] = useState('');
+  const [visibles, setVisibles] = useState(POR_PAGINA);
 
   useEffect(() => {
     catalogoApi
@@ -21,246 +39,126 @@ export function HomeCliente() {
       .then(setProductos)
       .catch(() => setProductos([]))
       .finally(() => setCargando(false));
+    catalogoApi.categoriasArbol().then(setCategorias).catch(() => setCategorias([]));
+
+    // El carrusel junta los banners del mantenedor y las promociones marcadas
+    // "mostrar en el carrusel". Si una de las dos fuentes falla, sale la otra.
+    Promise.all([
+      bannersApi.vigentes().catch(() => []),
+      catalogoApi.carrusel().catch(() => []),
+    ]).then(([propios, promos]) => {
+      setBanners([
+        ...propios,
+        ...promos.map((p) => ({
+          id: `promo-${p.id}`,
+          titulo: p.titulo,
+          subtitulo: p.descripcion,
+          imagenUrl: p.imagenBanner,
+          colorFondo: '#e53935',
+        })),
+      ]);
+    });
   }, []);
 
-  function mostrarToast(msg: string) {
-    setToast(msg);
-    setTimeout(() => setToast(''), 2200);
-  }
-
-  async function agregarAlCarrito(prod: Producto) {
-    setError('');
-    if (!user) {
-      navigate('/login');
-      return;
-    }
-    if (user.tipo !== 'CLIENTE') {
-      setError('Solo los clientes pueden comprar');
-      return;
-    }
-    try {
-      await carritoApi.agregar(prod.id, 1);
-      mostrarToast(`✓ ${prod.nombre} agregado al carrito`);
-    } catch (err) {
-      setError(mensajeDeError(err, 'No se pudo agregar al carrito'));
-    }
-  }
-
-  function estadoStock(stock: number) {
-    if (stock === 0) return { texto: 'Agotado', color: 'var(--rojo)' };
-    if (stock < 10) return { texto: `¡Solo ${stock} unidades!`, color: '#d97706' };
-    return { texto: `Stock: ${stock}`, color: 'var(--texto-suave)' };
-  }
+  const ofertas = useMemo(
+    () => productos.filter((p) => p.descuentoUnitario > 0 && p.stock > 0).slice(0, 10),
+    [productos],
+  );
 
   return (
-    <div style={{ width: '100%', padding: '0 1px', boxSizing: 'border-box' }}>
-      {/* Banner */}
-      <section
-        style={{
-          background: 'linear-gradient(120deg, #e9f7f0, #eaf1ff)',
-          borderRadius: 16,
-          padding: '48px 32px',
-          textAlign: 'center',
-          marginBottom: 32,
-          width: '100%',
-          boxSizing: 'border-box',
-        }}
-      >
-        <h1 style={{ fontSize: 30, marginBottom: 10 }}>Tu farmacia de confianza, a un clic</h1>
-        <p style={{ color: 'var(--texto-suave)', maxWidth: 560, margin: '0 auto' }}>
-          Medicamentos, dermocosmética y cuidado para toda la familia. Con registro sanitario y
-          retiro en botica.
-        </p>
+    <div>
+      {banners.length > 0 ? (
+        <CarruselBanners banners={banners} />
+      ) : (
+        <section className="hero-reserva">
+          <h1>Tu farmacia de confianza, a un clic</h1>
+          <p>
+            Medicamentos, dermocosmética y cuidado para toda la familia. Con registro sanitario
+            y retiro en botica.
+          </p>
+        </section>
+      )}
+
+      {categorias.length > 0 && (
+        <section>
+          <div className="seccion-titulo">
+            <h2>Compra por categoría</h2>
+          </div>
+          <div className="categorias-destacadas">
+            {categorias.map((c) => (
+              <Link key={c.id} to={`/categoria/${c.slug}`} className="categoria-chip">
+                <span className="categoria-chip-icono" aria-hidden>
+                  {ICONO_CATEGORIA[c.slug] ? (
+                    <img src={ICONO_CATEGORIA[c.slug]} alt="" />
+                  ) : (
+                    EMOJI_CATEGORIA[c.slug] ?? '💊'
+                  )}
+                </span>
+                {c.nombre}
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {error && <div className="tienda-aviso-error">{error}</div>}
+
+      {ofertas.length > 0 && (
+        <section style={{ marginBottom: 40 }}>
+          <div className="seccion-titulo">
+            <h2>🔥 Ofertas de la semana</h2>
+            <p>Precios con descuento por tiempo limitado</p>
+          </div>
+          <div className="grilla-productos columnas-5">
+            {ofertas.map((prod) => (
+              <TarjetaProducto key={prod.id} producto={prod} onAgregar={agregar} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <section>
+        <div className="seccion-titulo">
+          <h2>Nuestros productos</h2>
+          {!cargando && productos.length > 0 && (
+            <p>
+              Mostrando {Math.min(visibles, productos.length)} de {productos.length}
+            </p>
+          )}
+        </div>
+
+        {cargando ? (
+          <div className="grilla-productos columnas-5" aria-busy="true" aria-label="Cargando productos">
+            {Array.from({ length: 10 }, (_, i) => (
+              <div key={i} className="tarjeta-esqueleto" />
+            ))}
+          </div>
+        ) : productos.length === 0 ? (
+          <p style={{ color: 'var(--texto-suave)', textAlign: 'center', padding: 40 }}>
+            No hay productos disponibles por ahora.
+          </p>
+        ) : (
+          <>
+            <div className="grilla-productos columnas-5">
+              {productos.slice(0, visibles).map((prod) => (
+                <TarjetaProducto key={prod.id} producto={prod} onAgregar={agregar} />
+              ))}
+            </div>
+            {visibles < productos.length && (
+              <div className="ver-mas">
+                <button
+                  className="tienda-btn-secundario"
+                  onClick={() => setVisibles((v) => v + POR_PAGINA)}
+                >
+                  Ver más productos ({productos.length - visibles} restantes)
+                </button>
+              </div>
+            )}
+          </>
+        )}
       </section>
 
-      {/* Error */}
-      {error && (
-        <div
-          style={{
-            background: '#fef2f2',
-            border: '1px solid #fecaca',
-            color: '#dc2626',
-            padding: '12px 16px',
-            borderRadius: 8,
-            marginBottom: 20,
-            fontSize: 14,
-          }}
-        >
-          {error}
-        </div>
-      )}
-
-      {/* Productos */}
-      <h2 style={{ fontSize: 20, marginBottom: 16 }}>Nuestros productos</h2>
-
-      {cargando ? (
-        <p style={{ color: 'var(--texto-suave)', textAlign: 'center', padding: 40 }}>
-          Cargando productos…
-        </p>
-      ) : productos.length === 0 ? (
-        <p style={{ color: 'var(--texto-suave)', textAlign: 'center', padding: 40 }}>
-          No hay productos disponibles por ahora.
-        </p>
-      ) : (
-        <div 
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))',
-            gap: 20,
-            width: '100%',
-            marginBottom: 40,
-          }}
-        >
-          {productos.map((prod) => {
-            const stock = estadoStock(prod.stock);
-            const tieneDescuento = prod.descuentoUnitario > 0;
-
-            return (
-              <article
-                key={prod.id}
-                style={{
-                  background: 'var(--blanco)',
-                  border: '1px solid var(--borde)',
-                  borderRadius: 12,
-                  padding: 16,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  boxShadow: 'var(--sombra)',
-                }}
-              >
-                {/* CONTENEDOR DE LA IMAGEN CON EL BADGE RX */}
-                <div
-                  style={{
-                    height: 140,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: 12,
-                    background: '#f9fafb',
-                    borderRadius: 8,
-                    overflow: 'hidden',
-                    position: 'relative', // <-- Necesario para posicionar el Rx
-                  }}
-                >
-                  {prod.imagenUrl ? (
-                    <img
-                      src={prod.imagenUrl}
-                      alt={prod.nombre}
-                      style={{ maxHeight: '100%', maxWidth: '100%', objectFit: 'contain' }}
-                    />
-                  ) : (
-                    <div
-                      style={{
-                        fontSize: 48,
-                        color: '#d1d5db',
-                      }}
-                    >
-                      💊
-                    </div>
-                  )}
-
-                  {/* ETIQUETA RX */}
-                  {prod.requiereReceta && (
-                    <span
-                      style={{
-                        position: 'absolute',
-                        top: 8,
-                        left: 8,
-                        background: '#fef3c7',
-                        color: '#92400e',
-                        border: '1px solid #fde68a',
-                        borderRadius: 6,
-                        padding: '2px 7px',
-                        fontSize: 11,
-                        fontWeight: 700,
-                      }}
-                    >
-                      Rx
-                    </span>
-                  )}
-                </div>
-
-                <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4, minHeight: 40 }}>
-                  {prod.nombre}
-                </div>
-
-                {(prod.marca || prod.nombreCategoria) && (
-                  <div style={{ fontSize: 12, color: 'var(--texto-suave)', marginBottom: 8 }}>
-                    {prod.marca || prod.nombreCategoria}
-                  </div>
-                )}
-
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'baseline',
-                    gap: 8,
-                    marginBottom: 6,
-                  }}
-                >
-                  <span style={{ fontSize: 18, fontWeight: 700, color: 'var(--verde)' }}>
-                    S/ {prod.precioFinal.toFixed(2)}
-                  </span>
-                  {tieneDescuento && (
-                    <span
-                      style={{
-                        fontSize: 13,
-                        color: 'var(--texto-suave)',
-                        textDecoration: 'line-through',
-                      }}
-                    >
-                      S/ {prod.precio.toFixed(2)}
-                    </span>
-                  )}
-                </div>
-
-                <div style={{ fontSize: 12, color: stock.color, marginBottom: 10 }}>
-                  {stock.texto}
-                </div>
-
-                <button
-                  disabled={prod.stock === 0}
-                  onClick={() => agregarAlCarrito(prod)}
-                  style={{
-                    marginTop: 'auto',
-                    width: '100%',
-                    padding: '10px',
-                    background: prod.stock === 0 ? '#d1d5db' : 'var(--verde)',
-                    color: '#fff',
-                    border: 'none',
-                    borderRadius: 8,
-                    fontWeight: 600,
-                    fontSize: 13.5,
-                    cursor: prod.stock === 0 ? 'not-allowed' : 'pointer',
-                  }}
-                >
-                  {prod.stock === 0 ? 'Sin stock' : 'Agregar al carrito'}
-                </button>
-              </article>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Toast */}
-      {toast && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 24,
-            right: 24,
-            background: 'var(--verde)',
-            color: '#fff',
-            padding: '12px 20px',
-            borderRadius: 10,
-            fontWeight: 600,
-            boxShadow: '0 8px 20px rgba(5, 150, 105, 0.35)',
-            zIndex: 2000,
-          }}
-        >
-          {toast}
-        </div>
-      )}
+      {avisos}
     </div>
   );
 }

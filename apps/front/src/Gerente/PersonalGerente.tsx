@@ -132,15 +132,19 @@ export function PersonalGerente() {
       {error && <div className="panel-aviso">{error}</div>}
 
       <div className="table-toolbar">
-        <input
-          className="search-input"
-          type="text"
-          placeholder="Buscar colaborador por nombre, usuario o correo…"
-          value={busqueda}
-          onChange={(e) => setBusqueda(e.target.value)}
-        />
+        <div className="buscador-con-icono">
+          <i className="fa-solid fa-magnifying-glass" aria-hidden></i>
+          <input
+            className="search-input"
+            type="text"
+            placeholder="Buscar por nombre, usuario o correo…"
+            aria-label="Buscar colaborador"
+            value={busqueda}
+            onChange={(e) => setBusqueda(e.target.value)}
+          />
+        </div>
         <button className="btn-primary" onClick={abrirNuevo}>
-          + Nuevo Empleado
+          + Nuevo empleado
         </button>
       </div>
 

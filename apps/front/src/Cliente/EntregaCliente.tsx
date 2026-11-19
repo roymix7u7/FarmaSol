@@ -35,7 +35,7 @@ export function EntregaCliente() {
       <div className="checkout-container">
         <header className="checkout-header-card">
           <div className="logo-container" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-            <img src="/img/farmsol.png" alt="FarmaSOL Logo" className="logo-img" />
+            <img src="/img/farmsol-transparente.png" alt="FarmaSOL Logo" className="logo-img" />
           </div>
 
           <div className="checkout-steps">

@@ -30,6 +30,7 @@ public class DataSeeder implements CommandLineRunner {
     private final ProductoRepository productoRepository;
     private final PromocionRepository promocionRepository;
     private final SedeRepository sedeRepository;
+    private final BannerRepository bannerRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -39,6 +40,110 @@ public class DataSeeder implements CommandLineRunner {
         seedSedes();
         seedCatalogo();
         seedClienteDemo();
+        seedBanners();
+        seedPromocionesDemo();
+    }
+
+    /** Días que dura una promoción de ejemplo desde que se crea. */
+    private static final int DIAS_PROMO_DEMO = 60;
+
+    /**
+     * Promociones de ejemplo para que la tienda muestre precios con descuento.
+     *
+     * <p>Se buscan por título y no con "si la tabla está vacía": así también le
+     * llegan a quien ya tenía su base con datos (por ejemplo, con una promoción
+     * vieja ya vencida). Si el gerente borra una, no vuelve a aparecer, porque
+     * borrar solo la desactiva y el título sigue existiendo.
+     *
+     * <p>Las fechas se calculan el día que se crean: puestas fijas en el código,
+     * a quien clonara el repo meses después le llegarían ya vencidas.
+     */
+    private void seedPromocionesDemo() {
+        java.time.LocalDate desde = java.time.LocalDate.now().minusDays(1);
+        java.time.LocalDate hasta = desde.plusDays(DIAS_PROMO_DEMO);
+        java.util.Set<String> existentes = new java.util.HashSet<>();
+        promocionRepository.findAll().forEach(p -> existentes.add(p.getTitulo()));
+
+        // Solo unos pocos productos elegidos: con promociones por categoría
+        // entera, más de un tercio del catálogo salía rebajado.
+        int creadas = 0;
+        creadas += crearPromoDemo(existentes, "Ofertas de la semana: 15% de descuento",
+                "Descuento en productos seleccionados de farmacia y dermocosmética.",
+                com.farmasol.backend.model.enums.TipoDescuento.PORCENTAJE, "15", desde, hasta,
+                "Actron Ibuprofeno 400mg Capsula x 1",
+                "Panadol Antigripal NF Sobres x 2",
+                "Alma Secret Crema Solar Facial SPF50 50mL",
+                "Skin Repair Crema 75mL");
+        creadas += crearPromoDemo(existentes, "Huggies Natural Care: S/ 5 menos por paquete",
+                "Pañales Huggies Natural Care con S/ 5 de descuento.",
+                com.farmasol.backend.model.enums.TipoDescuento.MONTO, "5", desde, hasta,
+                "Huggies Natural Care M2 Panales x 60");
+        if (creadas > 0) log.info("Seed: {} promociones de ejemplo creadas (vigentes hasta {})", creadas, hasta);
+
+        // Un banner que anuncia las ofertas en el carrusel del inicio, mientras duren.
+        String tituloBanner = "Ofertas de la semana";
+        boolean hayBanner = bannerRepository.findAll().stream()
+                .anyMatch(b -> tituloBanner.equals(b.getTitulo()));
+        if (!hayBanner) {
+            bannerRepository.save(Banner.builder()
+                    .titulo(tituloBanner)
+                    .subtitulo("15% en Actron, Panadol Antigripal y cremas seleccionadas, y S/ 5 menos en pañales Huggies.")
+                    .imagenUrl("/img/menu01-farmacia.png").colorFondo("#e53935")
+                    .fechaInicio(desde).fechaFin(hasta)
+                    .orden(0).activo(true).build());
+            log.info("Seed: banner de Ofertas de la semana creado");
+        }
+    }
+
+    /** Crea una promoción para los productos con esos nombres exactos, si aún no existe. */
+    private int crearPromoDemo(java.util.Set<String> existentes, String titulo, String descripcion,
+                               com.farmasol.backend.model.enums.TipoDescuento tipo, String valor,
+                               java.time.LocalDate desde, java.time.LocalDate hasta, String... nombres) {
+        if (existentes.contains(titulo)) return 0;
+        java.util.Set<Producto> productos = new java.util.HashSet<>();
+        for (String nombre : nombres) {
+            productoRepository.findFirstByNombre(nombre).ifPresentOrElse(productos::add,
+                    () -> log.warn("Promoción '{}': no existe el producto '{}'", titulo, nombre));
+        }
+        // Sin ningún producto la promoción no aplicaría a nada: mejor no crearla.
+        if (productos.isEmpty()) return 0;
+        promocionRepository.save(Promocion.builder()
+                .titulo(titulo)
+                .descripcion(descripcion)
+                .tipoDescuento(tipo)
+                .valorDescuento(new BigDecimal(valor))
+                .fechaInicio(desde)
+                .fechaFin(hasta)
+                .mostrarEnCarrusel(false)
+                .orden(0)
+                .activo(true)
+                .productos(productos)
+                .build());
+        return 1;
+    }
+
+    /** Tres banners de ejemplo para que el carrusel del inicio no arranque vacío. */
+    private void seedBanners() {
+        if (bannerRepository.count() > 0) return;
+        bannerRepository.save(Banner.builder()
+                .titulo("Tu salud, sin salir de casa")
+                .subtitulo("Medicamentos con registro sanitario. Compra online y recógelo gratis en tu botica.")
+                .textoBoton("Ver farmacia").enlace("/categoria/farmacia")
+                .imagenUrl("/img/menu01-farmacia.png").colorFondo("#2ea471")
+                .orden(1).activo(true).build());
+        bannerRepository.save(Banner.builder()
+                .titulo("Todo para Mamá y Bebé")
+                .subtitulo("Pañales, nutrición y cuidado del recién nacido con las mejores marcas.")
+                .textoBoton("Comprar ahora").enlace("/categoria/mama-y-bebe")
+                .imagenUrl("/img/menu03-cuna.png").colorFondo("#1a56db")
+                .orden(2).activo(true).build());
+        bannerRepository.save(Banner.builder()
+                .titulo("Dermocosmética que te cuida")
+                .subtitulo("Protectores solares, cremas y tratamientos recomendados por dermatólogos.")
+                .textoBoton("Descubrir").enlace("/categoria/dermocosmetico")
+                .imagenUrl("/img/menu04-dermatologia.png").colorFondo("#9333ea")
+                .orden(3).activo(true).build());
+        log.info("Seed: 3 banners creados");
     }
 
     private void seedSedes() {
