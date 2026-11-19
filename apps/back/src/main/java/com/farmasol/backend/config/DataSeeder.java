@@ -30,6 +30,7 @@ public class DataSeeder implements CommandLineRunner {
     private final ProductoRepository productoRepository;
     private final PromocionRepository promocionRepository;
     private final SedeRepository sedeRepository;
+    private final BannerRepository bannerRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -39,6 +40,31 @@ public class DataSeeder implements CommandLineRunner {
         seedSedes();
         seedCatalogo();
         seedClienteDemo();
+        seedBanners();
+    }
+
+    /** Tres banners de ejemplo para que el carrusel del inicio no arranque vacío. */
+    private void seedBanners() {
+        if (bannerRepository.count() > 0) return;
+        bannerRepository.save(Banner.builder()
+                .titulo("Tu salud, sin salir de casa")
+                .subtitulo("Medicamentos con registro sanitario, delivery en Lima o recojo gratis en botica.")
+                .textoBoton("Ver farmacia").enlace("/categoria/farmacia")
+                .imagenUrl("/img/menu01-farmacia.png").colorFondo("#2ea471")
+                .orden(1).activo(true).build());
+        bannerRepository.save(Banner.builder()
+                .titulo("Todo para Mamá y Bebé")
+                .subtitulo("Pañales, nutrición y cuidado del recién nacido con las mejores marcas.")
+                .textoBoton("Comprar ahora").enlace("/categoria/mama-y-bebe")
+                .imagenUrl("/img/menu03-cuna.png").colorFondo("#1a56db")
+                .orden(2).activo(true).build());
+        bannerRepository.save(Banner.builder()
+                .titulo("Dermocosmética que te cuida")
+                .subtitulo("Protectores solares, cremas y tratamientos recomendados por dermatólogos.")
+                .textoBoton("Descubrir").enlace("/categoria/dermocosmetico")
+                .imagenUrl("/img/menu04-dermatologia.png").colorFondo("#9333ea")
+                .orden(3).activo(true).build());
+        log.info("Seed: 3 banners creados");
     }
 
     private void seedSedes() {

@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/AuthContext';
 import { mensajeDeError } from '../api/client';
+import { completarCompraPendiente } from '../shared/compraPendiente';
 import {
   infoDocumento,
   limpiarDocumento,
@@ -28,6 +29,10 @@ type Campo =
 export function RegistroCliente() {
   const { registrarCliente } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  // A dónde volver: la página desde la que abrió el modal de compra, o el inicio.
+  const destino =
+    (location.state as { from?: { pathname: string } } | null)?.from?.pathname ?? '/';
 
   const [tipoDocumento, setTipoDocumento] = useState<TipoDocumento>('DNI');
   const [form, setForm] = useState<Record<Campo, string>>({
@@ -125,7 +130,8 @@ export function RegistroCliente() {
         password: form.password,
         telefono: form.telefono,
       });
-      navigate('/', { replace: true });
+      await completarCompraPendiente();
+      navigate(destino, { replace: true });
     } catch (err) {
       setError(mensajeDeError(err, 'No se pudo crear la cuenta'));
     } finally {
@@ -292,7 +298,7 @@ export function RegistroCliente() {
 
         <div className="auth-links">
           <p>
-            ¿Ya tienes cuenta? <Link to="/login">Iniciar Sesión</Link>
+            ¿Ya tienes cuenta? <Link to="/login" state={location.state}>Iniciar Sesión</Link>
           </p>
         </div>
       </div>

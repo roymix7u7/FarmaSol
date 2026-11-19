@@ -6,7 +6,10 @@
     width: 100%;
     background: #f4f6f8;
     font-family: 'Inter', system-ui, sans-serif;
-    overflow-x: hidden;
+    /* clip y no hidden: hidden convierte al contenedor en zona de scroll y la barra
+       lateral (sticky) dejaba de quedarse fija al bajar; se iba con la página y
+       debajo quedaba un hueco gris. */
+    overflow-x: clip;
 }
 
 /* ============ SIDEBAR ============ */
@@ -35,20 +38,37 @@
     height: 42px;
     width: auto;
     object-fit: contain;
+    /* El PNG trae un fondo casi blanco: así se funde con la barra y no se ve el recuadro. */
+    mix-blend-mode: multiply;
 }
 
 .sidebar-nav {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 2px;
     padding: 0 12px;
 }
 
+.sidebar-seccion {
+    display: block;
+    padding: 16px 16px 6px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: #9ca3af;
+}
+
+.sidebar-seccion:first-child {
+    padding-top: 4px;
+}
+
 .sidebar-item {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 16px;
+    padding: 10px 16px;
     border-radius: 8px;
     font-size: 14px;
     font-weight: 500;
@@ -83,11 +103,250 @@
     color: #059669;
 }
 
-.sidebar-logout {
-    margin: 0 12px;
-    padding: 12px 16px;
+/* Barrita verde a la izquierda de la sección activa. */
+.sidebar-item.active::before {
+    content: '';
+    position: absolute;
+    left: -12px;
+    top: 8px;
+    bottom: 8px;
+    width: 3px;
+    border-radius: 0 3px 3px 0;
+    background: #059669;
+}
+
+/* Cuántos pendientes hay en la sección (recetas, pedidos). */
+.sidebar-contador {
+    margin-left: auto;
+    min-width: 22px;
+    height: 20px;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 11.5px;
+    font-weight: 700;
+    line-height: 20px;
+    text-align: center;
+}
+
+/* ============ CAMPANA DE NOTIFICACIONES ============ */
+.campana {
+    position: relative;
+}
+
+.campana-btn {
+    position: relative;
+    width: 38px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    background: #ffffff;
+    color: #4b5563;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.15s, border-color 0.15s;
+}
+
+.campana-btn:hover,
+.campana-btn.abierta {
+    background: #f9fafb;
+    border-color: #d1d5db;
+}
+
+.campana-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 999px;
+    background: #dc2626;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+    border: 2px solid #f4f6f8;
+    box-sizing: content-box;
+}
+
+.campana-panel {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 360px;
+    max-width: calc(100vw - 32px);
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    box-shadow: 0 16px 40px rgba(17, 24, 39, 0.14);
+    z-index: 50;
+    overflow: hidden;
+}
+
+.campana-cabecera {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.campana-cabecera strong {
+    font-size: 14.5px;
+    color: #111827;
+}
+
+.campana-cabecera span {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.campana-lista {
+    list-style: none;
+    margin: 0;
+    padding: 6px;
+    max-height: 380px;
+    overflow-y: auto;
+}
+
+.campana-item {
+    width: 100%;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px;
+    border: none;
+    border-radius: 8px;
+    background: none;
+    text-align: left;
+    font-family: inherit;
+    cursor: pointer;
+}
+
+.campana-item:hover {
+    background: #f9fafb;
+}
+
+.campana-icono {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 9px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+}
+
+.campana-icono.es-peligro { background: #fee2e2; color: #b91c1c; }
+.campana-icono.es-aviso { background: #fef3c7; color: #b45309; }
+.campana-icono.es-info { background: #dbeafe; color: #1d4ed8; }
+
+.campana-texto {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.campana-texto strong {
+    font-size: 13.5px;
+    color: #111827;
+}
+
+.campana-texto span {
+    font-size: 12.5px;
+    color: #6b7280;
+    line-height: 1.4;
+}
+
+.campana-flecha {
+    align-self: center;
+    font-size: 11px;
+    color: #d1d5db;
+}
+
+.campana-vacia {
+    padding: 28px 20px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 13px;
+}
+
+.campana-vacia i {
+    font-size: 28px;
+    color: #10b981;
+    margin-bottom: 8px;
+}
+
+.campana-pie {
+    padding: 9px 16px;
+    border-top: 1px solid #f3f4f6;
+    font-size: 11.5px;
+    color: #9ca3af;
+    text-align: center;
+}
+
+.sidebar-pie {
+    margin: 16px 12px 0;
+    padding-top: 14px;
     border-top: 1px solid #e5e7eb;
-    padding-top: 16px;
+}
+
+.sidebar-usuario {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 4px 10px;
+    min-width: 0;
+}
+
+.avatar-inicial {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #ecfdf5;
+    color: #047857;
+    font-weight: 700;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sidebar-usuario-texto {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    line-height: 1.3;
+}
+
+.sidebar-usuario-texto strong {
+    font-size: 13.5px;
+    color: #1f2937;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar-usuario-texto span {
+    font-size: 12px;
+    color: #6b7280;
+}
+
+.sidebar-logout {
+    margin: 0;
+    padding: 9px 4px;
+    border-top: none;
+    border-radius: 8px;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -100,7 +359,7 @@
     border-right: none;
     border-bottom: none;
     text-align: left;
-    width: calc(100% - 24px);
+    width: 100%;
     font-family: inherit;
 }
 
@@ -121,34 +380,61 @@
 .content-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
+    gap: 16px;
     margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e5e7eb;
 }
 
 .content-title {
-    font-size: 22px;
+    font-size: 24px;
     font-weight: 700;
-    color: #1f2937;
+    color: #111827;
+    letter-spacing: -0.3px;
+}
+
+.content-descripcion {
+    margin-top: 2px;
+    font-size: 13.5px;
+    color: #6b7280;
 }
 
 .content-user {
     display: flex;
     align-items: center;
     gap: 10px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #374151;
+    flex-shrink: 0;
+    font-size: 13px;
+    color: #4b5563;
 }
 
-.content-user i {
-    font-size: 26px;
-    color: #059669;
+.content-fecha {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 12px;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
 }
 
-.content-user .bell {
-    font-size: 18px;
-    color: #f59e0b;
-    margin-right: 8px;
+.content-fecha i {
+    color: #9ca3af;
+}
+
+.rol-pill {
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.rol-pill.es-gerente {
+    background: #dbeafe;
+    color: #1d4ed8;
 }
 
 /* ============ TABLAS ============ */
@@ -223,7 +509,7 @@
 
 .data-table th {
     text-align: left;
-    padding: 12px 24px;
+    padding: 12px 18px;
     font-size: 11.5px;
     font-weight: 700;
     color: #6b7280;
@@ -232,7 +518,7 @@
 }
 
 .data-table td {
-    padding: 16px 24px;
+    padding: 14px 18px;
     font-size: 13.5px;
     color: #1f2937;
     border-bottom: 1px solid #f3f4f6;
@@ -410,6 +696,20 @@
         padding: 6px 10px;
         border-top: none;
         font-size: 12.5px;
+    }
+
+    /* En la cabecera del celular sobran los títulos de grupo y la ficha de usuario. */
+    .sidebar-seccion,
+    .sidebar-usuario,
+    .sidebar-item.active::before,
+    .content-fecha {
+        display: none;
+    }
+
+    .sidebar-pie {
+        margin: 0;
+        padding: 0;
+        border-top: none;
     }
 
     .main-content {

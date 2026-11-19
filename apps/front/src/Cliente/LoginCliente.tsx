@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import axios from 'axios';
 import { mensajeDeError } from '../api/client';
 import { validarCorreo } from '../shared/validaciones';
+import { completarCompraPendiente } from '../shared/compraPendiente';
 import fondo from '../assets/logoffondo.jpg';
 import '../Css/Auth.css';
 
@@ -38,6 +39,9 @@ export function LoginCliente() {
     setCargando(true);
     try {
       await loginCliente(usuario.trim(), password);
+      // Si llegó desde el modal de "inicia sesión para comprar", su producto ya
+      // queda en el carrito al volver.
+      await completarCompraPendiente();
       navigate(destino, { replace: true });
     } catch (err) {
       // Mensaje genérico a propósito: decir cuál de los dos falló le diría a
@@ -106,7 +110,7 @@ export function LoginCliente() {
 
         <div className="auth-links">
           <p>
-            ¿No tienes cuenta? <Link to="/registro">Regístrate</Link>
+            ¿No tienes cuenta? <Link to="/registro" state={location.state}>Regístrate</Link>
           </p>
           <p style={{ marginTop: 6 }}>
             <Link to="/recuperar-password">

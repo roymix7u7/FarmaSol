@@ -106,8 +106,31 @@
 }
 
 .pub-login-icon,
-.pub-cart span:first-child {
+.pub-cart-icono {
   font-size: 20px;
+}
+
+.pub-cart-icono {
+  position: relative;
+}
+
+/* Cuántas unidades hay en el carrito, sobre el ícono. */
+.pub-cart-badge {
+  position: absolute;
+  top: -8px;
+  right: -10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: var(--rojo);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+  border: 2px solid var(--blanco);
+  box-sizing: content-box;
 }
 
 .pub-cart-label {
@@ -221,6 +244,19 @@
   color: var(--verde);
   font-weight: 700;
   border-bottom-color: var(--verde);
+}
+
+/* En el celular las categorías van en una sola fila que se desliza con el
+   dedo; en varias filas ocupaban media pantalla antes del contenido. */
+@media (max-width: 700px) {
+  .pub-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 20px;
+    scrollbar-width: none;
+  }
+  .pub-nav::-webkit-scrollbar { display: none; }
+  .pub-nav a { white-space: nowrap; flex-shrink: 0; }
 }
 
 /* ---------- Main / Footer ---------- */

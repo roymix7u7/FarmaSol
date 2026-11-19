@@ -37,24 +37,24 @@ export function LoginGerente() {
 
       <div className="trabajador-card">
         <div className="trabajador-logo">
-          <img src="/img/farmsol.png" alt="FarmaSOL" />
+          <img src="/img/farmsol-transparente.png" alt="FarmaSOL" />
         </div>
 
-        <h1 className="trabajador-title">Portal Gerente</h1>
-        <p className="trabajador-subtitle">Acceso restringido a personal autorizado</p>
+        <h1 className="trabajador-title">Portal del Personal</h1>
+        <p className="trabajador-subtitle">Ingreso para gerentes y empleados de FarmaSol</p>
 
         <div className="trabajador-divider"></div>
 
         <form onSubmit={onSubmit}>
           <div className="trabajador-field">
             <label className="trabajador-label" htmlFor="user">
-              Usuario ID / Credencial
+              Usuario
             </label>
             <div className="trabajador-input-box">
               <input
                 type="text"
                 id="user"
-                placeholder="gerente_farmasol"
+                placeholder="Tu usuario (sin @)"
                 required
                 autoComplete="username"
                 value={usuario}
@@ -93,14 +93,17 @@ export function LoginGerente() {
           {error && <p className="trabajador-error">{error}</p>}
 
           <button type="submit" className="trabajador-btn" disabled={cargando}>
-            {cargando ? 'Ingresando…' : 'Acceder al Sistema'}
+            {cargando ? 'Ingresando…' : 'Ingresar al panel'}
           </button>
         </form>
 
         <div className="trabajador-footer">
           <i className="fa-solid fa-lock"></i>
-          <span>Conexión segura SSL de 256 bits</span>
+          <span>Acceso solo para personal autorizado</span>
         </div>
+        <a href="/" className="trabajador-volver">
+          ← Volver a la tienda
+        </a>
       </div>
     </div>
   );

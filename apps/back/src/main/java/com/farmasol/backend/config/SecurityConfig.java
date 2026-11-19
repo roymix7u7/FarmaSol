@@ -54,6 +54,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/categorias/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/promociones/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/sedes").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/banners/vigentes").permitAll()
                         .anyRequest().authenticated())
                 .exceptionHandling(ex -> ex
                         .authenticationEntryPoint(restAuthEntryPoint)

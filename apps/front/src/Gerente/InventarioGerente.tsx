@@ -4,6 +4,13 @@ import { api, mensajeDeError } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import type { Categoria, Producto } from '../types';
 import '../Css/InventarioGerente.css';
+import '../Css/Dashboard.css';
+import { STOCK_BAJO } from './useAlertasPanel';
+
+/** Filas por página: con los 144 productos en una sola tabla había que bajar sin fin. */
+const POR_PAGINA = 15;
+
+export type FiltroStock = 'todos' | 'por-agotar' | 'agotados';
 
 interface ProductoForm {
   id?: number;
@@ -34,7 +41,14 @@ const FORM_VACIO: ProductoForm = {
   requiereReceta: false,
 };
 
-export function InventarioGerente() {
+export function InventarioGerente({
+  filtroInicial = 'todos',
+  onReportar,
+}: {
+  filtroInicial?: FiltroStock;
+  /** Abre el formulario real de "Reportar un problema" (lo maneja el panel). */
+  onReportar?: () => void;
+}) {
   const [productos, setProductos] = useState<Producto[]>([]);
   const { user } = useAuth();
   const puedeEditar = user?.rol === 'GERENTE';
@@ -51,6 +65,8 @@ export function InventarioGerente() {
   const [tempNuevaSubcat, setTempNuevaSubcat] = useState('');
 
   const [busqueda, setBusqueda] = useState('');
+  const [filtroStock, setFiltroStock] = useState<FiltroStock>(filtroInicial);
+  const [pagina, setPagina] = useState(1);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState('');
 
@@ -66,13 +82,6 @@ export function InventarioGerente() {
   const [imagenesDisponibles, setImagenesDisponibles] = useState<string[]>([]);
   const [galeriaAbierta, setGaleriaAbierta] = useState(false);
   const [hoveredImg, setHoveredImg] = useState<string | null>(null);
-
-  // Estados para el Modal "Contactar Admin"
-  const [modalAdminAbierto, setModalAdminAbierto] = useState(false);
-  const [enviadoAlerta, setEnviadoAlerta] = useState(false);
-  const [tipoIncidencia, setTipoIncidencia] = useState('Discrepancia física de stock en anaquel');
-  const [skuRelacionado, setSkuRelacionado] = useState('');
-  const [observacion, setObservacion] = useState('');
 
   useEffect(() => {
     cargarDatos();
@@ -240,265 +249,218 @@ export function InventarioGerente() {
     }
   }
 
-  const filtrados = productos.filter((p) =>
-    p.nombre?.toLowerCase().includes(busqueda.toLowerCase())
-  );
+  const texto = busqueda.trim().toLowerCase();
+  const agotados = productos.filter((p) => p.stock === 0).length;
+  // Mismo umbral que el Resumen y los Reportes (stock ≤ 10), para que los números coincidan.
+  const porAgotar = productos.filter((p) => p.stock > 0 && p.stock <= STOCK_BAJO).length;
+
+  // Busca también por marca y categoría: en mostrador se pregunta "¿qué tienes de Bayer?".
+  const filtrados = productos.filter((p) => {
+    if (filtroStock === 'agotados' && p.stock !== 0) return false;
+    if (filtroStock === 'por-agotar' && !(p.stock > 0 && p.stock <= STOCK_BAJO)) return false;
+    if (!texto) return true;
+    return [p.nombre, p.marca, p.nombreCategoria, p.subcategoria]
+      .some((campo) => campo?.toLowerCase().includes(texto));
+  });
+
+  const totalPaginas = Math.max(1, Math.ceil(filtrados.length / POR_PAGINA));
+  const paginaSegura = Math.min(pagina, totalPaginas);
+  const visibles = filtrados.slice((paginaSegura - 1) * POR_PAGINA, paginaSegura * POR_PAGINA);
 
   const estadoStock = (stock: number) => {
     if (stock === 0) return { texto: 'Agotado', clase: 'badge-red' };
-    if (stock < 10) return { texto: 'Por Agotar', clase: 'badge-yellow' };
-    return { texto: 'En Stock', clase: 'badge-green' };
-  };
-
-  const handleEnviarAlertaAdmin = (e: React.FormEvent) => {
-    e.preventDefault();
-    setEnviadoAlerta(true);
+    if (stock <= STOCK_BAJO) return { texto: 'Por agotar', clase: 'badge-yellow' };
+    return { texto: 'En stock', clase: 'badge-green' };
   };
 
   return (
     <>
+      <div className="kpi-row">
+        <button
+          type="button"
+          className={`kpi kpi-boton ${filtroStock === 'todos' ? 'kpi-principal' : ''}`}
+          onClick={() => { setFiltroStock('todos'); setPagina(1); }}
+        >
+          <span className="kpi-label">Productos en catálogo</span>
+          <span className="kpi-valor">{productos.length}</span>
+          <span className="kpi-nota">Ver todos</span>
+        </button>
+        <button
+          type="button"
+          className={`kpi kpi-boton ${filtroStock === 'por-agotar' ? 'kpi-principal' : ''}`}
+          onClick={() => { setFiltroStock('por-agotar'); setPagina(1); }}
+        >
+          <span className="kpi-label">Por agotar</span>
+          <span className="kpi-valor" style={{ color: '#b45309' }}>{porAgotar}</span>
+          <span className="kpi-nota">10 unidades o menos</span>
+        </button>
+        <button
+          type="button"
+          className={`kpi kpi-boton ${filtroStock === 'agotados' ? 'kpi-principal' : ''}`}
+          onClick={() => { setFiltroStock('agotados'); setPagina(1); }}
+        >
+          <span className="kpi-label">Agotados</span>
+          <span className="kpi-valor" style={{ color: '#b91c1c' }}>{agotados}</span>
+          <span className="kpi-nota">Sin unidades para vender</span>
+        </button>
+      </div>
+
       <div className="table-card">
-        <div className="table-toolbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flex: 1, minWidth: 260 }}>
+        <div className="table-toolbar" style={{ flexWrap: 'wrap', gap: 12 }}>
+          <div className="buscador-con-icono">
+            <i className="fa-solid fa-magnifying-glass" aria-hidden></i>
             <input
               className="search-input"
-              placeholder="Buscar medicamento por nombre..."
+              placeholder="Buscar por nombre, marca o categoría…"
               value={busqueda}
-              onChange={(e) => setBusqueda(e.target.value)}
-              style={{ flex: 1 }}
+              onChange={(e) => { setBusqueda(e.target.value); setPagina(1); }}
+              aria-label="Buscar productos"
             />
-            {puedeEditar ? (
-              <button className="btn-primary" onClick={abrirCrear}>
-                <i className="fa-solid fa-plus"></i> Nuevo Producto
-              </button>
-            ) : (
-              <span style={{ fontSize: 13, color: '#6b7280' }}>
-                <i className="fa-solid fa-lock" style={{ marginRight: 6 }}></i>
-                Solo lectura: gestión exclusiva del administrador
-              </span>
-            )}
           </div>
 
-          <button 
-            type="button"
-            onClick={() => {
-              setEnviadoAlerta(false);
-              setObservacion('');
-              setModalAdminAbierto(true);
-            }}
-            style={{
-              padding: '8px 16px',
-              backgroundColor: '#fff',
-              color: '#dc2626',
-              border: '1px solid #fecaca',
-              borderRadius: 8,
-              fontWeight: 600,
-              fontSize: 13,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-            }}
-          >
-            📞 Contactar Admin
-          </button>
+          {puedeEditar ? (
+            <button className="btn-primary" onClick={abrirCrear}>
+              <i className="fa-solid fa-plus"></i> Nuevo producto
+            </button>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: 13, color: '#6b7280' }}>
+                <i className="fa-solid fa-lock" style={{ marginRight: 6 }}></i>
+                Solo lectura
+              </span>
+              {/* Solo el empleado lo necesita: el gerente es quien administra el catálogo. */}
+              <button
+                type="button"
+                className="btn-chico"
+                onClick={onReportar}
+              >
+                <i className="fa-solid fa-flag" style={{ marginRight: 6 }}></i>
+                Reportar un problema
+              </button>
+            </div>
+          )}
         </div>
 
         {error && <div style={{ padding: 16, color: '#dc2626', fontSize: 14 }}>{error}</div>}
 
         {cargando ? (
-          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Cargando...</div>
+          <div style={{ padding: 40, textAlign: 'center', color: '#6b7280' }}>Cargando productos…</div>
+        ) : filtrados.length === 0 ? (
+          <div className="panel-vacio">Ningún producto coincide con la búsqueda.</div>
         ) : (
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Medicamento</th>
-                <th>Categoría</th>
-                <th>Subcategoría</th>
-                <th>Stock</th>
-                <th>Precio</th>
-                <th>Estado</th>
-                {puedeEditar && <th>Acciones</th>}
-              </tr>
-            </thead>
-            <tbody>
-              {filtrados.map((prod) => {
-                const estado = estadoStock(prod.stock);
-                return (
-                  <tr key={prod.id}>
-                    <td>#{String(prod.id).padStart(3, '0')}</td>
-                    <td>{prod.nombre}</td>
-                    <td>{prod.nombreCategoria || 'Sin categoría'}</td>
-                    <td style={{ color: prod.subcategoria ? '#059669' : '#9ca3af', fontWeight: prod.subcategoria ? 600 : 400 }}>
-                      {prod.subcategoria || '—'}
-                    </td>
-                    <td>{prod.stock} und.</td>
-                    <td>S/ {prod.precioFinal.toFixed(2)}</td>
-                    <td>
-                      <span className={`badge ${estado.clase}`}>{estado.texto}</span>
-                    </td>
-                    {puedeEditar && (
+          <div className="tabla-scroll">
+            <table className="data-table tabla-inventario">
+              <colgroup>
+                <col style={{ width: '38%' }} />
+                <col style={{ width: '17%' }} />
+                <col style={{ width: '9%' }} />
+                <col style={{ width: '11%' }} />
+                <col style={{ width: '12%' }} />
+                {puedeEditar && <col style={{ width: '13%' }} />}
+              </colgroup>
+              <thead>
+                <tr>
+                  <th>Producto</th>
+                  <th>Categoría</th>
+                  <th className="num">Stock</th>
+                  <th className="num">Precio</th>
+                  <th>Estado</th>
+                  {puedeEditar && <th></th>}
+                </tr>
+              </thead>
+              <tbody>
+                {visibles.map((prod) => {
+                  const estado = estadoStock(prod.stock);
+                  return (
+                    <tr key={prod.id}>
                       <td>
-                        <i
-                          className="fa-solid fa-pencil action-icon"
-                          onClick={() => abrirEditar(prod)}
-                        ></i>
+                        <div className="celda-producto">
+                          <div className="celda-producto-img">
+                            {prod.imagenUrl ? (
+                              <img src={prod.imagenUrl} alt="" loading="lazy" />
+                            ) : (
+                              <i className="fa-solid fa-pills" aria-hidden></i>
+                            )}
+                          </div>
+                          <div className="celda-producto-texto">
+                            <span className="celda-producto-nombre" title={prod.nombre}>
+                              {prod.nombre}
+                              {prod.requiereReceta && <span className="mini-rx">Rx</span>}
+                            </span>
+                            <span className="celda-producto-sub">
+                              #{String(prod.id).padStart(3, '0')}
+                              {prod.marca && ` · ${prod.marca}`}
+                            </span>
+                          </div>
+                        </div>
                       </td>
-                    )}
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      <td>
+                        <span className="celda-categoria">{prod.nombreCategoria || 'Sin categoría'}</span>
+                        {prod.subcategoria && (
+                          <span className="celda-producto-sub">{prod.subcategoria}</span>
+                        )}
+                      </td>
+                      <td className="num">{prod.stock}</td>
+                      <td className="num">S/ {prod.precioFinal.toFixed(2)}</td>
+                      <td>
+                        <span className={`badge ${estado.clase}`}>{estado.texto}</span>
+                      </td>
+                      {puedeEditar && (
+                        <td style={{ textAlign: 'right' }}>
+                          <button className="btn-chico" onClick={() => abrirEditar(prod)}>
+                            Editar
+                          </button>
+                        </td>
+                      )}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
 
         <div className="table-footer">
-          <span>Mostrando {filtrados.length} producto(s)</span>
+          <span>
+            {filtrados.length === 0
+              ? 'Sin resultados'
+              : `${(paginaSegura - 1) * POR_PAGINA + 1}–${Math.min(paginaSegura * POR_PAGINA, filtrados.length)} de ${filtrados.length} productos`}
+          </span>
+          {totalPaginas > 1 && (
+            <div className="pagination">
+              <button
+                disabled={paginaSegura === 1}
+                onClick={() => setPagina(paginaSegura - 1)}
+                aria-label="Página anterior"
+              >
+                ‹
+              </button>
+              {Array.from({ length: totalPaginas }, (_, i) => i + 1)
+                .filter((n) => n === 1 || n === totalPaginas || Math.abs(n - paginaSegura) <= 1)
+                .map((n, i, arr) => (
+                  <span key={n} style={{ display: 'contents' }}>
+                    {i > 0 && n - arr[i - 1] > 1 && <span className="pagination-puntos">…</span>}
+                    <button
+                      className={n === paginaSegura ? 'active' : undefined}
+                      onClick={() => setPagina(n)}
+                      aria-current={n === paginaSegura ? 'page' : undefined}
+                    >
+                      {n}
+                    </button>
+                  </span>
+                ))}
+              <button
+                disabled={paginaSegura === totalPaginas}
+                onClick={() => setPagina(paginaSegura + 1)}
+                aria-label="Página siguiente"
+              >
+                ›
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ============ MODAL CONTACTAR ADMIN ============ */}
-      {modalAdminAbierto && (
-        <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-          backgroundColor: 'rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(3px)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20
-        }}>
-          <div style={{
-            backgroundColor: '#ffffff', borderRadius: 20, width: '100%', maxWidth: 560,
-            padding: '32px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', position: 'relative'
-          }}>
-            {!enviadoAlerta ? (
-              <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
-                  <div>
-                    <h3 style={{ fontSize: 18, fontWeight: 800, color: '#111827', margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: 8 }}>
-                      📞 Solicitar Asistencia de Administrador
-                    </h3>
-                    <p style={{ fontSize: 13, color: '#6b7280', margin: 0 }}>
-                      Envía una alerta prioritaria al supervisor de turno en tienda.
-                    </p>
-                  </div>
-                  <button 
-                    type="button"
-                    onClick={() => setModalAdminAbierto(false)}
-                    style={{ backgroundColor: '#f3f4f6', border: 'none', width: 32, height: 32, borderRadius: '50%', fontSize: 14, cursor: 'pointer', color: '#4b5563', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold' }}
-                  >
-                    ✕
-                  </button>
-                </div>
-
-                <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 12, padding: '12px 16px', marginBottom: 20 }}>
-                  <span style={{ fontSize: 11, fontWeight: 700, color: '#166534', textTransform: 'uppercase', display: 'block', marginBottom: 2 }}>
-                    Supervisor activo:
-                  </span>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: '#15803d' }}>
-                    Paolo (Admin General) • Canal interno conectado
-                  </span>
-                </div>
-
-                <form onSubmit={handleEnviarAlertaAdmin} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                      Tipo de Incidencia *
-                    </label>
-                    <select 
-                      value={tipoIncidencia}
-                      onChange={(e) => setTipoIncidencia(e.target.value)}
-                      style={{ width: '100%', padding: '10px 14px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, backgroundColor: '#fff', color: '#111827' }}
-                    >
-                      <option value="Discrepancia física de stock en anaquel">Discrepancia física de stock en anaquel</option>
-                      <option value="Error en validación de receta médica">Error en validación de receta médica</option>
-                      <option value="Problema con el sistema de caja o pago">Problema con el sistema de caja o pago</option>
-                      <option value="Otro motivo operativo">Otro motivo operativo</option>
-                    </select>
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                      N° de Orden o SKU relacionado
-                    </label>
-                    <input 
-                      type="text"
-                      value={skuRelacionado}
-                      onChange={(e) => setSkuRelacionado(e.target.value)}
-                      placeholder="Ej. #MED-103 [Crema Alma Secret]"
-                      style={{ width: '100%', padding: '10px 14px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box' }}
-                    />
-                  </div>
-
-                  <div>
-                    <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
-                      Observación / Motivo del llamado *
-                    </label>
-                    <textarea 
-                      rows={3}
-                      required
-                      value={observacion}
-                      onChange={(e) => setObservacion(e.target.value)}
-                      placeholder="Detalla brevemente el motivo para que el admin acuda o responda..."
-                      style={{ width: '100%', padding: '10px 14px', border: '1px solid #d1d5db', borderRadius: 8, fontSize: 14, boxSizing: 'border-box', resize: 'vertical' }}
-                    />
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 8 }}>
-                    <button 
-                      type="button" 
-                      onClick={() => setModalAdminAbierto(false)}
-                      style={{ padding: '10px 20px', backgroundColor: '#f3f4f6', color: '#374151', border: '1px solid #d1d5db', borderRadius: 8, fontWeight: 600, fontSize: 14, cursor: 'pointer' }}
-                    >
-                      Cancelar
-                    </button>
-                    <button 
-                      type="submit"
-                      style={{ padding: '10px 24px', backgroundColor: '#dc2626', color: '#fff', border: 'none', borderRadius: 8, fontWeight: 600, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 12px rgba(220, 38, 38, 0.25)' }}
-                    >
-                      🚨 Enviar Alerta
-                    </button>
-                  </div>
-                </form>
-              </>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '10px 0' }}>
-                <div style={{ width: 64, height: 64, backgroundColor: '#d1fae5', color: '#059669', borderRadius: '50%', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 28 }}>
-                  ✓
-                </div>
-                <h3 style={{ fontSize: 20, fontWeight: 800, color: '#111827', marginBottom: 6 }}>
-                  Alerta notificada al Administrador
-                </h3>
-                <p style={{ fontSize: 13, color: '#6b7280', marginBottom: 24 }}>
-                  El mensaje de soporte fue enviado con prioridad alta al supervisor en turno.
-                </p>
-
-                <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: 16, textAlign: 'left', marginBottom: 24, fontSize: 13, display: 'flex', flexDirection: 'column', gap: 8 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#64748b' }}>Supervisor asignado:</span>
-                    <strong style={{ color: '#059669' }}>Paolo (Admin General)</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#64748b' }}>Tipo de Incidencia:</span>
-                    <strong style={{ color: '#1e293b' }}>{tipoIncidencia}</strong>
-                  </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: '#64748b' }}>Canal de respuesta:</span>
-                    <strong style={{ color: '#059669' }}>Terminal Operativo EMP-02 (En espera)</strong>
-                  </div>
-                </div>
-
-                <button 
-                  type="button"
-                  onClick={() => setModalAdminAbierto(false)}
-                  style={{ width: '100%', padding: '12px', backgroundColor: '#059669', color: '#fff', border: 'none', borderRadius: 10, fontWeight: 700, fontSize: 14, cursor: 'pointer', boxShadow: '0 4px 12px rgba(5, 150, 105, 0.25)' }}
-                >
-                  Entendido, volver a inventario
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* ============ MODAL DE PRODUCTO (CREAR / EDITAR) ============ */}
       {modalAbierto && (

@@ -28,7 +28,7 @@ export function CategoriaCliente() {
   const [cargando, setCargando] = useState(true);
   const [errorCarga, setErrorCarga] = useState('');
 
-  const { agregar, error, toast } = useAgregarAlCarrito();
+  const { agregar, error, avisos } = useAgregarAlCarrito();
 
   useEffect(() => {
     if (!slug) return;
@@ -133,24 +133,7 @@ export function CategoriaCliente() {
         </div>
       ) : null}
 
-      {toast && (
-        <div
-          style={{
-            position: 'fixed',
-            bottom: 24,
-            right: 24,
-            background: 'var(--verde)',
-            color: '#fff',
-            padding: '12px 20px',
-            borderRadius: 10,
-            fontWeight: 600,
-            boxShadow: '0 8px 20px rgba(5, 150, 105, 0.35)',
-            zIndex: 2000,
-          }}
-        >
-          {toast}
-        </div>
-      )}
+      {avisos}
     </div>
   );
 }

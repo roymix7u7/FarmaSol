@@ -5,9 +5,24 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background-color: #f5f5f7;
+    background:
+        radial-gradient(circle at 15% 20%, rgba(5, 150, 105, 0.10), transparent 40%),
+        radial-gradient(circle at 85% 85%, rgba(245, 166, 35, 0.10), transparent 40%),
+        #f5f6f8;
     font-family: 'Inter', system-ui, sans-serif;
     padding: 20px;
+}
+
+.trabajador-volver {
+    display: block;
+    margin-top: 14px;
+    text-align: center;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.trabajador-volver:hover {
+    color: #059669;
 }
 
 .trabajador-card {
@@ -32,6 +47,7 @@
     height: 42px;
     width: auto;
     object-fit: contain;
+    mix-blend-mode: multiply;
 }
 
 .trabajador-title {
