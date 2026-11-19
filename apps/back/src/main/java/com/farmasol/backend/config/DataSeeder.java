@@ -41,6 +41,84 @@ public class DataSeeder implements CommandLineRunner {
         seedCatalogo();
         seedClienteDemo();
         seedBanners();
+        seedPromocionesDemo();
+    }
+
+    /** Días que dura una promoción de ejemplo desde que se crea. */
+    private static final int DIAS_PROMO_DEMO = 60;
+
+    /**
+     * Promociones de ejemplo para que la tienda muestre precios con descuento.
+     *
+     * <p>Se buscan por título y no con "si la tabla está vacía": así también le
+     * llegan a quien ya tenía su base con datos (por ejemplo, con una promoción
+     * vieja ya vencida). Si el gerente borra una, no vuelve a aparecer, porque
+     * borrar solo la desactiva y el título sigue existiendo.
+     *
+     * <p>Las fechas se calculan el día que se crean: puestas fijas en el código,
+     * a quien clonara el repo meses después le llegarían ya vencidas.
+     */
+    private void seedPromocionesDemo() {
+        java.time.LocalDate desde = java.time.LocalDate.now().minusDays(1);
+        java.time.LocalDate hasta = desde.plusDays(DIAS_PROMO_DEMO);
+        java.util.Set<String> existentes = new java.util.HashSet<>();
+        promocionRepository.findAll().forEach(p -> existentes.add(p.getTitulo()));
+
+        int creadas = 0;
+        creadas += crearPromoDemo(existentes, "Semana de la salud: 15% en analgésicos y antigripales",
+                "Descuento en medicamentos para el dolor, la fiebre y el resfrío.",
+                com.farmasol.backend.model.enums.TipoDescuento.PORCENTAJE, "15", desde, hasta,
+                "analgesicos", "antigripales");
+        creadas += crearPromoDemo(existentes, "Dermocosmética con 20% de descuento",
+                "Protectores solares, cremas y tratamientos para el cuidado de la piel.",
+                com.farmasol.backend.model.enums.TipoDescuento.PORCENTAJE, "20", desde, hasta,
+                "dermocosmetico");
+        creadas += crearPromoDemo(existentes, "Mamá y Bebé: S/ 5 menos en cada producto",
+                "Pañales, nutrición y cuidado del bebé con S/ 5 de descuento por unidad.",
+                com.farmasol.backend.model.enums.TipoDescuento.MONTO, "5", desde, hasta,
+                "mama-y-bebe");
+        if (creadas > 0) log.info("Seed: {} promociones de ejemplo creadas (vigentes hasta {})", creadas, hasta);
+
+        // Un banner que anuncia las ofertas en el carrusel del inicio, mientras duren.
+        String tituloBanner = "Semana de la salud: hasta 20% de descuento";
+        boolean hayBanner = bannerRepository.findAll().stream()
+                .anyMatch(b -> tituloBanner.equals(b.getTitulo()));
+        if (!hayBanner) {
+            bannerRepository.save(Banner.builder()
+                    .titulo(tituloBanner)
+                    .subtitulo("15% en analgésicos y antigripales, 20% en dermocosmética y S/ 5 menos en Mamá y Bebé.")
+                    .textoBoton("Ver ofertas").enlace("/categoria/farmacia")
+                    .imagenUrl("/img/menu01-farmacia.png").colorFondo("#e53935")
+                    .fechaInicio(desde).fechaFin(hasta)
+                    .orden(0).activo(true).build());
+            log.info("Seed: banner de la Semana de la salud creado");
+        }
+    }
+
+    private int crearPromoDemo(java.util.Set<String> existentes, String titulo, String descripcion,
+                               com.farmasol.backend.model.enums.TipoDescuento tipo, String valor,
+                               java.time.LocalDate desde, java.time.LocalDate hasta, String... slugs) {
+        if (existentes.contains(titulo)) return 0;
+        java.util.Set<Categoria> categorias = new java.util.HashSet<>();
+        for (String slug : slugs) {
+            categoriaRepository.findBySlug(slug).ifPresentOrElse(categorias::add,
+                    () -> log.warn("Promoción '{}': no existe la categoría '{}'", titulo, slug));
+        }
+        // Sin ninguna categoría la promoción no aplicaría a nada: mejor no crearla.
+        if (categorias.isEmpty()) return 0;
+        promocionRepository.save(Promocion.builder()
+                .titulo(titulo)
+                .descripcion(descripcion)
+                .tipoDescuento(tipo)
+                .valorDescuento(new BigDecimal(valor))
+                .fechaInicio(desde)
+                .fechaFin(hasta)
+                .mostrarEnCarrusel(false)
+                .orden(0)
+                .activo(true)
+                .categorias(categorias)
+                .build());
+        return 1;
     }
 
     /** Tres banners de ejemplo para que el carrusel del inicio no arranque vacío. */
