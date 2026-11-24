@@ -1,0 +1,191 @@
+/* Panel de filtros del catálogo y de la búsqueda. */
+
+.catalogo-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+/* En móvil los filtros pasan arriba, plegados. */
+@media (max-width: 860px) {
+  .catalogo-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.filtros {
+  background: var(--blanco);
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: var(--sombra);
+  position: sticky;
+  top: 16px;
+}
+
+@media (max-width: 860px) {
+  .filtros {
+    position: static;
+  }
+}
+
+.filtros-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.filtros-titulo {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--texto);
+  margin: 0;
+}
+
+.filtros-limpiar {
+  background: none;
+  border: none;
+  color: var(--verde);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.filtros-limpiar:disabled {
+  color: var(--texto-suave);
+  cursor: default;
+}
+
+.filtros-grupo {
+  border-top: 1px solid var(--borde);
+  padding-top: 14px;
+  margin-top: 14px;
+}
+
+.filtros-grupo-titulo {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--texto-suave);
+  margin: 0 0 10px;
+}
+
+.filtros-opcion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13.5px;
+  color: var(--texto);
+  padding: 4px 0;
+  cursor: pointer;
+}
+
+.filtros-opcion input {
+  accent-color: var(--verde);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.filtros-opcion span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.filtros-conteo {
+  margin-left: auto;
+  font-size: 11.5px;
+  color: var(--texto-suave);
+  flex-shrink: 0;
+}
+
+.filtros-rango-valores {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--texto);
+  margin-bottom: 8px;
+}
+
+.filtros-rango input[type='range'] {
+  width: 100%;
+  accent-color: var(--verde);
+  cursor: pointer;
+  margin: 2px 0;
+}
+
+.filtros-rango-etiqueta {
+  font-size: 11.5px;
+  color: var(--texto-suave);
+}
+
+.filtros-buscar-marca {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--borde);
+  border-radius: 7px;
+  font-size: 13px;
+  margin-bottom: 8px;
+  font-family: inherit;
+}
+
+.filtros-buscar-marca:focus {
+  outline: 2px solid var(--verde);
+  outline-offset: -1px;
+}
+
+.filtros-lista-scroll {
+  max-height: 168px;
+  overflow-y: auto;
+}
+
+.filtros-vacio {
+  font-size: 12.5px;
+  color: var(--texto-suave);
+  padding: 4px 0;
+}
+
+/* Botón para plegar los filtros en móvil. */
+.filtros-toggle {
+  display: none;
+  width: 100%;
+  padding: 11px;
+  background: var(--blanco);
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--texto);
+  cursor: pointer;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+
+@media (max-width: 860px) {
+  .filtros-toggle {
+    display: block;
+  }
+
+  /* Plegado solo en movil: en escritorio el panel siempre se ve. */
+  .filtros.esta-plegado {
+    display: none;
+  }
+}
+
+.filtros-resumen {
+  font-size: 13.5px;
+  color: var(--texto-suave);
+  margin-bottom: 14px;
+}
+
+.filtros-resumen strong {
+  color: var(--texto);
+}
