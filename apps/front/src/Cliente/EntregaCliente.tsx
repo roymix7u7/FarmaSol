@@ -21,8 +21,10 @@ export function EntregaCliente() {
   function handleIrAPagar(e: React.FormEvent) {
     e.preventDefault();
     if (!idSede) return alert('Elige una sede');
-    if (!nombreRetira.trim() || !dni.trim()) return alert('Completa los datos de recojo');
-
+    
+    if (!nombreRetira.trim()) return alert('Completa el nombre de quien retira'); 
+    if (!dni.trim()) return alert('El DNI es obligatorio');
+    if (dni.length !==8) return alert('El DNI debe tener exactamente 8 dígitos numéricos');
     localStorage.setItem(
       'datosRecojo',
       JSON.stringify({ idSede, recojoNombre: nombreRetira.trim(), recojoDni: dni.trim() })
@@ -98,7 +100,8 @@ export function EntregaCliente() {
               <input
                 type="text"
                 value={dni}
-                onChange={(e) => setDni(e.target.value)}
+                onChange={(e) => setDni(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                maxLength={8}
                 placeholder="72849102"
                 required
               />

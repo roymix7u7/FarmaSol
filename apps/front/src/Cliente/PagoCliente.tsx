@@ -112,6 +112,22 @@ export function PagoCliente() {
         setError('El número de tarjeta debe tener exactamente 16 dígitos.');
         return;
       }
+
+      if (expiracion.length === 5) {
+        const [mesStr, anioStr] = expiracion.split('/');
+        const mesTarjeta = parseInt(mesStr, 10);
+        const anioTarjeta = parseInt(`20${anioStr}`, 10); // Convierte "26" a 2026
+
+        const hoy = new Date();
+        const mesActual = hoy.getMonth() + 1; // getMonth() devuelve 0-11, le sumamos 1
+        const anioActual = hoy.getFullYear();
+
+        // Si el año es menor, o es el mismo año pero el mes ya pasó
+        if (anioTarjeta < anioActual || (anioTarjeta === anioActual && mesTarjeta < mesActual)) {
+          setError('Tarjeta expirada. Por favor, verifica la fecha o usa otra tarjeta.');
+          return;
+        }
+      }
     }
 
     setProcesando(true);
