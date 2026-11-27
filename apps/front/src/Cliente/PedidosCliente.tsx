@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { pedidosApi } from '../api/pedidos';
 import { api, mensajeDeError } from '../api/client';
 import { desglosar, PrecioUnitario, ResumenPrecios, type LineaPrecio } from '../shared/ResumenPrecios';
+import '../Css/global.css';
 
 /** Precio de una línea del pedido. Los pedidos viejos pueden no traer el unitario. */
 function lineaDe(d: PedidoDetalle): LineaPrecio {
@@ -192,8 +193,7 @@ export function PedidosCliente() {
   }
 
   return (
-    <div style={{ maxWidth: 1150, margin: '40px auto', padding: '0 20px', display: 'grid', gridTemplateColumns: '280px 1fr', gap: 32, boxSizing: 'border-box' }}>
-      
+    <div className="pedidos-layout">  
       {/* Panel Lateral de Usuario */}
       <div style={{ background: '#ffffff', border: '1px solid #e5e7eb', borderRadius: 20, padding: 28, height: 'fit-content', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', textAlign: 'center' }}>
         <div style={{ width: 84, height: 84, background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)', color: '#fff', borderRadius: '50%', margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 32, fontWeight: 'bold', boxShadow: '0 10px 15px -3px rgba(5, 150, 105, 0.2)' }}>

@@ -309,3 +309,30 @@
     font-size: 12px;
   }
 }
+
+/* Arreglo del menú de usuario (Perfil de HOME) en móvil */
+@media (max-width: 820px) {
+  .pub-usermenu-dropdown {
+    position: fixed !important; /* Fija el menú a la ventana, no al botón */
+    top: 80px !important;       /* Lo coloca justo debajo de la barra de búsqueda */
+    right: 10px !important;     /* Pegado al borde derecho */
+    left: auto !important;      /* Anula cualquier alineación a la izquierda */
+    width: 230px !important;
+    z-index: 9999 !important;
+  }
+}
+
+.pub-usermenu {
+  position: relative !important;
+}
+
+/* Forzar alineación a la derecha del menú desplegable en móvil */
+@media (max-width: 820px) {
+  .pub-usermenu-dropdown {
+    position: absolute !important;
+    top: calc(100% + 10px) !important;
+    right: 0 !important;
+    left: auto !important;
+    min-width: 200px !important;
+  }
+}

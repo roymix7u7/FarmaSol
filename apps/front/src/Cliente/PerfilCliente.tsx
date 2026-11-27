@@ -81,7 +81,7 @@ export function PerfilCliente() {
 
   return (
     <div style={{ maxWidth: 1100, margin: '0 auto', padding: '24px 16px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '280px 1fr', gap: 24 }}>
+      <div className="layout-perfil-contenido">
         {/* ============ SIDEBAR ============ */}
         <aside>
           <div
@@ -224,13 +224,7 @@ export function PerfilCliente() {
             )}
 
             <form onSubmit={handleGuardar}>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: 18,
-                }}
-              >
+              <div className="grid-form-dos-columnas" style={{ gap: 18 }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <label style={{ fontSize: 13, fontWeight: 600 }}>Nombres *</label>
                   <input
