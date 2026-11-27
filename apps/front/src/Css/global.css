@@ -61,7 +61,6 @@ textarea {
   flex-direction: column;
 }
 
-/* Botón principal reutilizable */
 .btn-primario {
   display: inline-flex;
   align-items: center;
@@ -100,10 +99,6 @@ textarea {
   margin-bottom: 14px;
 }
 
-/* Grilla de productos de la tienda. En pantalla grande muestra 5 columnas en
-   el inicio y 4 en las categorías (que tienen la barra de filtros al lado), y
-   va quitando columnas a medida que la pantalla se achica: con un número fijo,
-   en el celular salían 5 tarjetas diminutas por fila. */
 .grilla-productos {
   display: grid;
   gap: 16px;
@@ -122,4 +117,70 @@ textarea {
 @media (max-width: 700px) {
   .grilla-productos.columnas-5,
   .grilla-productos.columnas-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+}
+
+.pedidos-layout,
+.layout-perfil-contenido {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 24px;
+    max-width: 1150px;
+    margin: 40px auto;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+.grid-form-dos-columnas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+@media (max-width: 900px) {
+    .pedidos-layout,
+    .layout-perfil-contenido {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 24px !important;
+        margin: 20px auto !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .grid-form-dos-columnas {
+        grid-template-columns: 1fr; 
+    }
+
+    .modal-form {
+        grid-template-columns: 1fr !important; 
+    }
+    .modal-form .form-field, 
+    .modal-form .form-field.full {
+        grid-column: span 1 !important;
+    }
+    .modal-card {
+        width: 95% !important;
+        padding: 20px 16px !important;
+        max-height: 90vh !important;
+    }
+    .modal-actions {
+        flex-direction: column-reverse !important;
+        gap: 10px !important;
+    }
+    .modal-actions button {
+        width: 100% !important;
+    }
+
+    .table-toolbar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+    .table-toolbar .search-input {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+    .table-toolbar .btn-primary {
+        width: 100% !important;
+        justify-content: center !important;
+    }
 }

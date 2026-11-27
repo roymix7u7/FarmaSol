@@ -17,6 +17,7 @@ export default defineConfig({
     plugins: [react()],
     server: {
         host: true,
+        allowedHosts: true, // <-- AGREGA ESTA LÍNEA AQUÍ
         watch: {
             ignored: ['**/.vs/**'],
             usePolling,
